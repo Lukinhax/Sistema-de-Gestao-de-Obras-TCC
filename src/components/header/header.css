@@ -1,0 +1,36 @@
+.header {
+  display: flex;
+  position: fixed;         
+  top: 0;                  
+  left: 0;                
+  width: 100%;             
+  backdrop-filter: blur(4px);  
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  justify-content: space-between;             
+}
+
+img {
+    height: 90px; 
+}
+
+nav{
+    display: flex;
+    gap: 1.5rem;
+}
+.divNav{
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.divNav button {
+    height: 2.5rem;
+    width: auto;
+    font-size: 1rem;
+}
+
+.divAvatar {
+    display: flex;
+    align-items: center;
+    padding-right: 1rem;
+}
