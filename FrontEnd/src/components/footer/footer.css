@@ -9,6 +9,21 @@
     text-align: center;
 }
 
+.social{
+  display: flex;
+  justify-content: center;
+}
+
+.social ul{
+  display: flex;
+  list-style: none;
+  padding: 0;
+}
+
+#endereco{
+  margin-top: 0;
+}
+
 .contact {
   display: flex;
   gap: 20px;
