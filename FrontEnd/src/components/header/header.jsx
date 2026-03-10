@@ -1,5 +1,9 @@
+// imports do material ui
 import Button from '@mui/material/Button';
-import Avatar from '@mui/material/Avatar';
+
+// imports do radix ui
+
+// imports do react e imagens
 import logo from "../../assets/logo.svg";
 import "./header.css";
 
@@ -14,10 +18,9 @@ export default function Header() {
           <Button variant="text">Início</Button>
           <Button variant="text">Serviços</Button>
           <Button variant="text">Sobre</Button>
-          <Button v ariant="text">Contato</Button>
-        </div>
-        <div className='divAvatar'>
-          <Avatar src="/broken-image.jpg" />
+          <Button variant="text">Contato</Button>
+          <Button variant="outlined">Login</Button>
+          <Button variant="contained">Cadastro</Button>
         </div>
       </nav>
     </header>

@@ -19,7 +19,6 @@ nav{
 }
 .divNav{
     display: flex;
-    gap: 0.5rem;
     align-items: center;
 }
 
@@ -27,10 +26,5 @@ nav{
     height: 2.5rem;
     width: auto;
     font-size: 1rem;
-}
-
-.divAvatar {
-    display: flex;
-    align-items: center;
-    padding-right: 1rem;
+    margin-right: 1rem;
 }

@@ -1,0 +1,23 @@
+.footer{
+    background-color: black;
+    color: white;
+    display: flex;
+    justify-content: center;
+}
+
+.footer-section{
+    text-align: center;
+}
+
+.contact {
+  display: flex;
+  gap: 20px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
