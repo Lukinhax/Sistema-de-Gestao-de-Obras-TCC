@@ -1,5 +1,8 @@
+//Import de img e estilização
 import "./footer.css";
 import logo from "../../assets/logo.svg";
+
+/*Import icons do material UI*/
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import InstagramIcon from '@mui/icons-material/Instagram';
 import FacebookIcon from '@mui/icons-material/Facebook';

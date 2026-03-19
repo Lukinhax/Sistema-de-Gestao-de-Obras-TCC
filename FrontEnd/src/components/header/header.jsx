@@ -1,8 +1,6 @@
 // imports do material ui
 import Button from '@mui/material/Button';
 
-// imports do radix ui
-
 // imports do react e imagens
 import logo from "../../assets/logo.svg";
 import "./header.css";
