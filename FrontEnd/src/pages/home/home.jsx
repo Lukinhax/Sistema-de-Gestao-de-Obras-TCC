@@ -14,7 +14,7 @@ import Typography from "@mui/material/Typography";
 
 
 
-export default function home() {
+export default function Home() {
   return (
     <div className="home">
       <Header />
@@ -25,17 +25,14 @@ export default function home() {
 
           <div className="content-top">
 
-            <div className="rodape-title">
-              <h2>Excelencia em Gestão de Projetos Elétrico Industriais</h2>
-            </div>
-
             <div>
-              <h1>Soluções para <span>Gestão</span> de Projetos Elétrico Industriais</h1>
-              <p>Gerenciamos projetos elétricos industriais completos, desde o planejamento até a execução, garantindo eficiência, segurança e conformidade com as normas técnicas</p>
+              <h1><span>Software de Gestão para Obras</span> de Engenharia Elétrica Industrial</h1>
+              <p>Gerenciamos as informações do seu projeto, com segurança e eficiência, centralizando todas as ferramentas em um só local e sem a complexidade dos sistemas tradicionais </p>
               <ul className="list-content-top">
-                <li><TaskAltIcon sx={{ color: "green" }} /> Mais de 15 anos no mercado</li>
-                <li><TaskAltIcon sx={{ color: "green" }} /> Equipe especializada e certificada</li>
-                <li><TaskAltIcon sx={{ color: "green" }} /> Projetos personalizados para a sua industria</li>
+                <li><TaskAltIcon sx={{ color: "green" }} /> Pesquisas de campo</li>
+                <li><TaskAltIcon sx={{ color: "green" }} /> Testes de segurança</li>
+                <li><TaskAltIcon sx={{ color: "green" }} /> Testes de qualidade do sistema</li>
+                <li><TaskAltIcon sx={{ color: "green" }} /> Entrevistas com profissionais e empresas do setor</li>
               </ul>
             </div>
 
@@ -52,14 +49,10 @@ export default function home() {
         <section className="container-middle">
 
           <div className="content-middle">
-            
-            <div className="content-middle-title"> 
-              <h2>Nossos serviços</h2>
-            </div>
 
             <div className="content-middle-text">
-            <h1>Soluções Completas em Engenharia Elétrica</h1>
-            <p>Oferecemos uma gama completa de serviços para atender todas as necessidades elétricas da sua indústria</p>
+            <h1>Soluções Completas para a sua Empresa</h1>
+            <p>Oferecemos uma gama de serviços para atender ás complexas necessidades de gestão de seus projetos</p>
             </div>
 
             <div className="Div-Grid">
@@ -67,10 +60,10 @@ export default function home() {
                 <CardContent>
 
                   <Typography variant="h1">
-                    Projetos Elétricos Industriais
+                    Módulo de Gestão de Custos
                   </Typography>
                   <Typography variant="body1">
-                    Gerenciamos projetos elétricos industriais completos, desde o planejamento até a execução, garantindo eficiência, segurança e conformidade com as normas técnicas.
+                    Focado no registro e controle financeiro, permitindo o acompanhamento entre orçamentos previstos e realizados para oferecer suporte à tomada de decisão e evitar desvios orçamentários.
                   </Typography>
 
                 </CardContent>
@@ -80,10 +73,10 @@ export default function home() {
                 <CardContent >
 
                   <Typography variant="h1">
-                    Projetos Elétricos Industriais
+                    Módulo de Gestão de Recursos
                   </Typography>
                   <Typography variant="body1">
-                    Gerenciamos projetos elétricos industriais completos, desde o planejamento até a execução, garantindo eficiência, segurança e conformidade com as normas técnicas.
+                    Responsável pelo controle rigoroso de materiais e insumos, gerenciando o fluxo de estoque para garantir que não ocorram interrupções por falta de componentes críticos.
                   </Typography>
                   
                 </CardContent>
@@ -93,58 +86,49 @@ export default function home() {
                 <CardContent >
                   
                   <Typography variant="h1">
-                    Projetos Elétricos Industriais
+                    Módulo de Gestão de Prazos
                   </Typography>
                   <Typography variant="body1">
-                    Gerenciamos projetos elétricos industriais completos, desde o planejamento até a execução, garantindo eficiência, segurança e conformidade com as normas técnicas.
+                    Essencial para a gestão do cronograma através da definição de marcos permitindo a identificação de gargalos e garantindo a entrega pontual do projeto.
                   </Typography>
                   
                 </CardContent>
               </Card>
-
+              
+              <div id="div-grid-central">
               <Card className="card">  
                 <CardContent >
                   
                   <Typography variant="h1">
-                    Projetos Elétricos Industriais
+                    Módulo de Gestão de Mão de Obra
                   </Typography>
                   <Typography variant="body1">
-                    Gerenciamos projetos elétricos industriais completos, desde o planejamento até a execução, garantindo eficiência, segurança e conformidade com as normas técnicas.
+                    Voltado à gestão do capital humano e alocação de equipes, organizando a distribuição de tarefas e o controle de horas para otimizar a produtividade no canteiro de obras.
                   </Typography>
                   
                 </CardContent>
               </Card>
-
-              <Card className="card">  
-                <CardContent >
-                  
-                  <Typography variant="h1">
-                    Projetos Elétricos Industriais
-                  </Typography>
-                  <Typography variant="body1">
-                    Gerenciamos projetos elétricos industriais completos, desde o planejamento até a execução, garantindo eficiência, segurança e conformidade com as normas técnicas.
-                  </Typography>
-                  
-                </CardContent>
-              </Card>
-
-              <Card className="card">  
-                <CardContent >
-                  
-                  <Typography variant="h1">
-                    Projetos Elétricos Industriais
-                  </Typography>
-                  <Typography variant="body1">
-                    Gerenciamos projetos elétricos industriais completos, desde o planejamento até a execução, garantindo eficiência, segurança e conformidade com as normas técnicas.
-                  </Typography>
-                  
-                </CardContent>
-              </Card>
+              </div>
             </div>
 
           </div>
 
         </section>
+
+
+
+        <section id="content-bottom">
+          <div className="container-bottom">
+            <div id="content-bottom-Left">
+              <h2>Sobre o Sistema</h2>
+              <p>Sistema web voltado à gestão de projetos de engenharia elétrica industrial, com o objetivo de centralizar e organizar informações relacionadas a custos, prazos, mão de obra e recursos. A implementação desse sistema incluem maior confiabilidade no acompanhamento de projetos, melhor controle dos recursos disponíveis e redução de atrasos e falhas de comunicação entre os setores envolvidos.</p>
+            </div>
+
+            <div id="content-bottom-Right">
+              <img src={imgTopo} alt="Imagem Topo" />
+            </div>  
+          </div>
+        </section>   
 
       </main>
       

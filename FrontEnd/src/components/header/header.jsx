@@ -13,12 +13,14 @@ export default function Header() {
 
       <nav>
         <div className='divNav'>
-          <Button variant="text">Início</Button>
-          <Button variant="text">Serviços</Button>
-          <Button variant="text">Sobre</Button>
-          <Button variant="text">Contato</Button>
-          <Button variant="outlined">Login</Button>
-          <Button variant="contained">Cadastro</Button>
+          <Button className='btnText' variant="text">Início</Button>
+          <Button className='btnText' variant="text">Serviços</Button>
+          <Button className='btnText' variant="text">Sobre</Button>
+          <Button className='btnText' variant="text">Contato</Button>
+
+
+          <Button className='btnOutlined' variant="outlined">Login</Button>
+          <Button className='btnContained' variant="contained">Cadastro</Button>
         </div>
       </nav>
     </header>

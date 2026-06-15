@@ -1,42 +1,29 @@
 .footer{
+    width: 100%;
     background-color: black;
     color: white;
     display: flex;
+    flex-direction: column;
     justify-content: center;
-}
-
-.footer-section{
+    align-items: center;
     text-align: center;
 }
 
-.social{
-  display: flex;
-  justify-content: center;
+p {
+  margin-bottom: 0;
 }
 
-.social ul{
-  display: flex;
-  list-style: none;
-  padding: 0;
-}
-
-#endereco{
-  margin-top: 0;
-}
-
-.contact {
-  display: flex;
-  gap: 20px;
-}
-
-.contactItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-}
-
-.footer img { 
+img { 
   height: 90px;
+}
+
+@media (max-width: 768px) {
+  .footer {
+    font-size: 0.9rem;
+  }
+
+  img {
+    height: 80px;
+  }
 }
 
