@@ -25,7 +25,7 @@ export default function Home() {
 
           <div className="content-top">
 
-            <div>
+            <div id="btnInicio">
               <h1><span>Software de Gestão para Obras</span> de Engenharia Elétrica Industrial</h1>
               <p>Gerenciamos as informações do seu projeto, com segurança e eficiência, centralizando todas as ferramentas em um só local e sem a complexidade dos sistemas tradicionais </p>
               <ul className="list-content-top">
@@ -46,7 +46,7 @@ export default function Home() {
 
 
 
-        <section className="container-middle">
+        <section className="container-middle" id="serviços">
 
           <div className="content-middle">
 
@@ -117,7 +117,7 @@ export default function Home() {
 
 
 
-        <section id="content-bottom">
+        <section id="content-bottom" id="sobre">
           <div className="container-bottom">
             <div id="content-bottom-Left">
               <h2>Sobre o Sistema</h2>
