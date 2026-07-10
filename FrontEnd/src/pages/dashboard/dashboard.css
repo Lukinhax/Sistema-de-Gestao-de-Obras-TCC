@@ -1,0 +1,293 @@
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  font-family: 'Roboto', sans-serif;
+  background-color: #f3f4f6; /* Fundo cinza bem clarinho (dashboard moderno) */
+}
+
+/* =========================================
+   TOPBAR
+   ========================================= */
+.dashboard-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 85px; /* Altura aumentada para caber a logo maior */
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 35px; /* Aumentado para empurrar a logo mais para a direita */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  z-index: 10;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  /* Removido o gap grande para controlar o espaço puramente pela barrinha */
+}
+
+.topbar-logo {
+  height: 65px; /* Logo maior */
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.topbar-logo:hover {
+  transform: scale(1.05); /* Efeito interativo */
+  filter: drop-shadow(0px 4px 8px rgba(46, 107, 238, 0.2));
+}
+
+.topbar-divider {
+  width: 2px;
+  height: 40px;
+  background-color: #d1d5db; /* Linha cinza elegante */
+  margin: 0 20px; /* Espaço exato (20px) entre a logo e a barrinha, e entre a barrinha e o texto */
+  border-radius: 2px;
+}
+
+.topbar-nav {
+  display: flex;
+  gap: 20px;
+}
+
+.topbar-nav a {
+  text-decoration: none;
+  color: #4b5563;
+  font-weight: 500;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+
+.topbar-nav a:hover,
+.topbar-nav a.active {
+  color: #2e6bee;
+}
+
+/* =========================================
+   PROFILE MENU & DROPDOWN
+   ========================================= */
+.topbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.profile-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.profile-container:hover {
+  background-color: #f3f4f6;
+}
+
+.company-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.95rem;
+  user-select: none;
+}
+
+.dropdown-arrow {
+  transition: transform 0.2s ease;
+  color: #6b7280;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 5px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  min-width: 230px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+  z-index: 100;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: #374151;
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+  user-select: none;
+}
+
+.dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.dropdown-item.logout {
+  color: #dc2626;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 4px;
+}
+.dropdown-item.logout:hover {
+  background-color: #fef2f2;
+}
+
+
+/* =========================================
+   DARK MODE
+   ========================================= */
+.dashboard-layout.dark-mode {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+.dashboard-layout.dark-mode .dashboard-topbar,
+.dashboard-layout.dark-mode .dashboard-sidebar,
+.dashboard-layout.dark-mode .welcome-box,
+.dashboard-layout.dark-mode .dropdown-menu {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dashboard-layout.dark-mode .company-name,
+.dashboard-layout.dark-mode .dropdown-item,
+.dashboard-layout.dark-mode .topbar-nav a {
+  color: #f9fafb;
+}
+
+.dashboard-layout.dark-mode .topbar-nav a:hover,
+.dashboard-layout.dark-mode .topbar-nav a.active {
+  color: #60a5fa; /* Azul claro para destacar no fundo escuro */
+}
+
+.dashboard-layout.dark-mode .topbar-divider {
+  background-color: #4b5563;
+}
+
+.dashboard-layout.dark-mode .sidebar-title,
+.dashboard-layout.dark-mode .sidebar-item {
+  color: #9ca3af;
+}
+
+.dashboard-layout.dark-mode .dropdown-item:hover,
+.dashboard-layout.dark-mode .profile-container:hover,
+.dashboard-layout.dark-mode .sidebar-item:hover {
+  background-color: #374151;
+}
+
+.dashboard-layout.dark-mode .dropdown-item.logout {
+  color: #f87171;
+  border-color: #374151;
+}
+.dashboard-layout.dark-mode .dropdown-item.logout:hover {
+  background-color: #7f1d1d;
+}
+.dashboard-layout.dark-mode .welcome-box h1 {
+  color: #60a5fa;
+}
+.dashboard-layout.dark-mode .welcome-box p {
+  color: #9ca3af;
+}
+
+
+/* =========================================
+   MAIN AREA (Sidebar + Content)
+   ========================================= */
+.dashboard-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+
+/* =========================================
+   SIDEBAR (FAVORITOS)
+   ========================================= */
+.dashboard-sidebar {
+  width: 250px;
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  white-space: nowrap; /* Impede o texto de quebrar quando estiver fechando */
+}
+
+.dashboard-sidebar.closed {
+  width: 0;
+  padding: 0;
+  border-right: none;
+  opacity: 0;
+}
+
+.sidebar-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #9ca3af;
+  font-weight: bold;
+  margin-bottom: 15px;
+  letter-spacing: 1px;
+}
+
+.sidebar-items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sidebar-item {
+  color: #6b7280;
+  font-size: 0.95rem;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar-item:hover {
+  background-color: #f3f4f6;
+  color: #111827;
+}
+
+
+/* =========================================
+   CONTENT AREA
+   ========================================= */
+.dashboard-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+}
+
+.welcome-box {
+  background: white;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
+}
+
+.welcome-box h1 {
+  color: #2e6bee;
+  margin-bottom: 10px;
+  font-size: 2rem;
+}
+
+.welcome-box p {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
