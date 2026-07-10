@@ -18,9 +18,9 @@ export default function Home() {
   return (
     <div className="home">
       <Header />
-      
+
       <main className="main">
-        
+
         <section className="container-top">
 
           <div className="content-top">
@@ -51,16 +51,16 @@ export default function Home() {
           <div className="content-middle">
 
             <div className="content-middle-text">
-            <h1>Soluções Completas para a sua Empresa</h1>
-            <p>Oferecemos uma gama de serviços para atender ás complexas necessidades de gestão de seus projetos</p>
+              <h1>Soluções Completas para a sua Empresa</h1>
+              <p>Oferecemos uma gama de serviços para atender ás complexas necessidades de gestão de seus projetos</p>
             </div>
 
             <div className="Div-Grid">
-              <Card className="card">  
+              <Card className="card">
                 <CardContent>
 
                   <Typography variant="h1">
-                    Módulo de Gestão de Custos
+                    Gestão de Custos
                   </Typography>
                   <Typography variant="body1">
                     Focado no registro e controle financeiro, permitindo o acompanhamento entre orçamentos previstos e realizados para oferecer suporte à tomada de decisão e evitar desvios orçamentários.
@@ -69,45 +69,45 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              <Card className="card">  
+              <Card className="card">
                 <CardContent >
 
                   <Typography variant="h1">
-                    Módulo de Gestão de Recursos
+                    Gestão de Recursos
                   </Typography>
                   <Typography variant="body1">
                     Responsável pelo controle rigoroso de materiais e insumos, gerenciando o fluxo de estoque para garantir que não ocorram interrupções por falta de componentes críticos.
                   </Typography>
-                  
+
                 </CardContent>
               </Card>
 
-              <Card className="card">  
+              <Card className="card">
                 <CardContent >
-                  
+
                   <Typography variant="h1">
-                    Módulo de Gestão de Prazos
+                    Gestão de Prazos
                   </Typography>
                   <Typography variant="body1">
                     Essencial para a gestão do cronograma através da definição de marcos permitindo a identificação de gargalos e garantindo a entrega pontual do projeto.
                   </Typography>
-                  
+
                 </CardContent>
               </Card>
-              
+
               <div id="div-grid-central">
-              <Card className="card">  
-                <CardContent >
-                  
-                  <Typography variant="h1">
-                    Módulo de Gestão de Mão de Obra
-                  </Typography>
-                  <Typography variant="body1">
-                    Voltado à gestão do capital humano e alocação de equipes, organizando a distribuição de tarefas e o controle de horas para otimizar a produtividade no canteiro de obras.
-                  </Typography>
-                  
-                </CardContent>
-              </Card>
+                <Card className="card">
+                  <CardContent >
+
+                    <Typography variant="h1">
+                      Gestão de Mão de Obra
+                    </Typography>
+                    <Typography variant="body1">
+                      Voltado à gestão do capital humano e alocação de equipes, organizando a distribuição de tarefas e o controle de horas para otimizar a produtividade no canteiro de obras.
+                    </Typography>
+
+                  </CardContent>
+                </Card>
               </div>
             </div>
 
@@ -117,7 +117,7 @@ export default function Home() {
 
 
 
-        <section id="content-bottom" id="sobre">
+        <section className="content-bottom" id="sobre">
           <div className="container-bottom">
             <div id="content-bottom-Left">
               <h2>Sobre o Sistema</h2>
@@ -126,12 +126,12 @@ export default function Home() {
 
             <div id="content-bottom-Right">
               <img src={imgTopo} alt="Imagem Topo" />
-            </div>  
+            </div>
           </div>
-        </section>   
+        </section>
 
       </main>
-      
+
       <Footer />
     </div>
   )

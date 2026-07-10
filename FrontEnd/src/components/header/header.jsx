@@ -16,8 +16,6 @@ export default function Header() {
         <div className='divNav'>
           <Button className='btnText' variant="text" href="/#serviços">Serviços</Button>
           <Button className='btnText' variant="text" href="/#sobre">Sobre</Button>
-          <Button className='btnText' variant="text" href="/#contato">Contato</Button>
-
 
           <Button className='btnOutlined' variant="outlined" component={Link} to="/login">
             Login

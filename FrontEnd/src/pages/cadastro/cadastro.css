@@ -1,0 +1,155 @@
+.cadastro-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  box-sizing: border-box; /* Garante que o padding não adicione altura extra (evita barra de rolagem) */
+  /* Fundo combinando com a home (azul claro para branco) */
+  background: linear-gradient(to bottom, #d6e9ff 0%, #d6e9ff 75%, white 100%);
+  font-family: 'Roboto', sans-serif;
+  padding-bottom: 15vh; /* Empurra visualmente o conteúdo para cima sem causar scroll */
+}
+
+.auth-logo-link {
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-logo-img {
+  width: 280px; /* Logo maior */
+  transition: transform 0.3s ease, filter 0.3s ease;
+  filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.auth-logo-img:hover {
+  transform: scale(1.05); /* Interativo ao passar o mouse */
+  filter: drop-shadow(0px 6px 12px rgba(46, 107, 238, 0.3)); /* Brilho leve */
+}
+
+.cadastro-box {
+  background: #fcfcfc;
+  padding: 40px 50px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 480px;
+  color: #333;
+}
+
+.cadastro-box h1 {
+  margin-top: 0;
+  font-size: 28px;
+  font-weight: 900;
+  font-style: italic;
+  color: #2e6bee; /* Azul do titulo da home */
+  text-align: center;
+}
+
+.cadastro-box p {
+  color: #4B5563; /* Cinza da home */
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 300;
+}
+
+.input-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.input-group label {
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+.input-group input {
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #333;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+  border-color: #2e6bee;
+  box-shadow: 0 0 5px rgba(46, 107, 238, 0.3);
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 45px;
+  box-sizing: border-box;
+}
+
+.eye-icon {
+  position: absolute !important;
+  right: 8px;
+  color: #9ca3af !important; /* Cor mais suave */
+}
+
+.eye-icon:hover {
+  color: #2e6bee !important; /* Brilha levemente azul no hover */
+}
+
+.cadastro-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #2e6bee;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+}
+
+.cadastro-btn:hover {
+  background-color: #1c52c7;
+  transform: scale(1.02);
+}
+
+.error-message {
+  color: #d9534f !important;
+  background: rgba(217, 83, 79, 0.1);
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.login-link {
+  margin-top: 25px;
+  text-align: center;
+  font-size: 14px;
+  color: #4B5563;
+}
+
+.login-link a {
+  color: #2e6bee;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.login-link a:hover {
+  text-decoration: underline;
+}
