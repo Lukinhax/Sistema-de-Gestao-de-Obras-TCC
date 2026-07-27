@@ -1,0 +1,413 @@
+.configuracoes-container {
+  padding: 40px;
+  font-family: 'Roboto', sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: #333;
+}
+
+.configuracoes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.configuracoes-header h1 {
+  font-size: 2.2rem;
+  color: #1f2937;
+  margin: 0;
+}
+
+.configuracoes-header .btn-voltar {
+  background-color: transparent;
+  color: #3b82f6;
+  border: 1px solid #3b82f6;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.configuracoes-header .btn-voltar:hover {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+
+
+.configuracoes-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+@media (max-width: 900px) {
+  .configuracoes-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card-section {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.card-section h2 {
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.card-section p {
+  color: #6b7280;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+}
+
+/* Form Styles */
+.funcionario-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.input-group label {
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #4b5563;
+}
+
+.input-group input, .input-group select {
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  background-color: #f9fafb;
+}
+
+.input-group input:focus, .input-group select:focus {
+  outline: none;
+  border-color: #2e6bee;
+  background-color: #ffffff;
+}
+
+.login-input-wrapper {
+  display: flex;
+  align-items: stretch;
+}
+
+.login-input-wrapper input {
+  flex: 1;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+
+.dominio-label {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background-color: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-left: none;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 50px;
+}
+
+.password-input-wrapper .eye-icon {
+  position: absolute !important;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af !important;
+}
+
+.btn-submit {
+  margin-top: 10px;
+  padding: 14px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-submit:hover {
+  background-color: #059669;
+}
+
+.btn-submit:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.9rem;
+  margin: 0;
+  padding: 10px;
+  background-color: #fef2f2;
+  border-radius: 6px;
+  border-left: 4px solid #ef4444;
+}
+
+.success-message {
+  color: #10b981;
+  font-size: 0.9rem;
+  margin: 0;
+  padding: 10px;
+  background-color: #ecfdf5;
+  border-radius: 6px;
+  border-left: 4px solid #10b981;
+}
+
+/* Table Styles */
+.empty-list {
+  text-align: center;
+  padding: 40px 0;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.funcionarios-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.funcionarios-table th, 
+.funcionarios-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.funcionarios-table th {
+  background-color: #f9fafb;
+  color: #4b5563;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.funcionarios-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.badges-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.badge-permissao {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-permissao.obras { background-color: #dbeafe; color: #1e40af; }
+.badge-permissao.recursos { background-color: #dcfce7; color: #166534; }
+.badge-permissao.equipes { background-color: #fef9c3; color: #854d0e; }
+.badge-permissao.alocacoes { background-color: #ffedd5; color: #9a3412; }
+.badge-permissao.configuracoes { background-color: #f3e8ff; color: #6b21a8; }
+
+/* CHECKBOXES CUSTOMIZADOS */
+.permissions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  background: #f9fafb;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+.permission-checkbox {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding-left: 32px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  user-select: none;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.permission-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.checkmark {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0;
+  height: 22px;
+  width: 22px;
+  background-color: #e5e7eb;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  transition: all 0.2s;
+}
+
+.permission-checkbox:hover input ~ .checkmark {
+  background-color: #d1d5db;
+}
+
+.permission-checkbox input:checked ~ .checkmark {
+  background-color: #2e6bee;
+  border-color: #2e6bee;
+}
+
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.permission-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.permission-checkbox .checkmark:after {
+  left: 7px;
+  top: 3px;
+  width: 6px;
+  height: 12px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* DARK MODE - CONFIGURAÇÕES */
+body.dark-mode .configuracoes-container {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+body.dark-mode .configuracoes-header h1 {
+  color: #60a5fa;
+}
+
+body.dark-mode .card-section {
+  background-color: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .card-section h2 {
+  color: #60a5fa;
+  border-bottom-color: #374151;
+}
+
+body.dark-mode .card-section p {
+  color: #9ca3af;
+}
+
+body.dark-mode .input-group label {
+  color: #d1d5db;
+}
+
+body.dark-mode .input-group input,
+body.dark-mode .input-group select {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+body.dark-mode .input-group input:focus,
+body.dark-mode .input-group select:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+body.dark-mode .dominio-label {
+  background-color: #4b5563;
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+body.dark-mode .funcionarios-table th {
+  background-color: #374151;
+  color: #d1d5db;
+  border-bottom-color: #4b5563;
+}
+
+body.dark-mode .funcionarios-table td {
+  border-bottom-color: #374151;
+  color: #f9fafb;
+}
+
+body.dark-mode .funcionarios-table tr:hover {
+  background-color: #374151;
+}
+
+/* Ajustes Dark mode Checkboxes */
+body.dark-mode .permissions-grid {
+  background-color: #1f2937;
+  border-color: #4b5563;
+}
+
+body.dark-mode .permission-checkbox {
+  color: #d1d5db;
+}
+
+body.dark-mode .checkmark {
+  background-color: #374151;
+  border-color: #4b5563;
+}
+
+body.dark-mode .permission-checkbox:hover input ~ .checkmark {
+  background-color: #4b5563;
+}
+
+body.dark-mode .permission-checkbox input:checked ~ .checkmark {
+  background-color: #60a5fa;
+  border-color: #60a5fa;
+}
+
+/* Ajustes de badge no dark mode */
+body.dark-mode .badge-permissao.obras { background-color: #1e3a8a; color: #bfdbfe; }
+body.dark-mode .badge-permissao.recursos { background-color: #064e3b; color: #a7f3d0; }
+body.dark-mode .badge-permissao.equipes { background-color: #713f12; color: #fef08a; }
+body.dark-mode .badge-permissao.alocacoes { background-color: #7c2d12; color: #fed7aa; }
+body.dark-mode .badge-permissao.configuracoes { background-color: #581c87; color: #e9d5ff; }

@@ -1,0 +1,265 @@
+@import '../dashboard/dashboard.css';
+
+/* TABS CONTAINER */
+.tabs-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+
+.tab-button:hover {
+  color: #374151;
+}
+
+.tab-button.active {
+  color: #2e6bee;
+  border-bottom-color: #2e6bee;
+}
+
+/* SECTION CONTAINERS */
+.tab-content {
+  min-height: 400px;
+}
+
+/* TABELA CUSTOMIZADA */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.custom-table th {
+  background-color: #f9fafb;
+  color: #6b7280;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.custom-table td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+.custom-table tr:last-child td {
+  border-bottom: none;
+}
+
+.custom-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* EQUIPES GRID E CARDS */
+.equipes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.equipe-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.equipe-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.equipe-card-header h3 {
+  font-size: 1.1rem;
+  color: #111827;
+  margin: 0;
+  font-weight: 700;
+}
+
+.equipe-cost {
+  background: #ecfdf5;
+  color: #059669;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.equipe-desc {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin-bottom: 15px;
+  flex-grow: 1;
+}
+
+.equipe-members {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 15px;
+}
+
+.equipe-members h4 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #4b5563;
+  margin: 0 0 10px 0;
+}
+
+.member-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #374151;
+  padding: 4px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.member-list li:last-child {
+  border-bottom: none;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.btn-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  border-radius: 8px;
+  padding: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.text-muted {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  font-style: italic;
+  margin: 0;
+}
+
+/* =========================================
+   DARK MODE OVERRIDES
+   ========================================= */
+body.dark-mode .tabs-container {
+  border-bottom-color: #374151;
+}
+
+body.dark-mode .tab-button {
+  color: #9ca3af;
+}
+
+body.dark-mode .tab-button:hover {
+  color: #e5e7eb;
+}
+
+body.dark-mode .tab-button.active {
+  color: #60a5fa;
+  border-bottom-color: #60a5fa;
+}
+
+body.dark-mode .table-container,
+body.dark-mode .equipe-card {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+body.dark-mode .custom-table th {
+  background-color: #111827;
+  color: #9ca3af;
+  border-color: #374151;
+}
+
+body.dark-mode .custom-table td {
+  border-color: #374151;
+  color: #d1d5db;
+}
+
+body.dark-mode .custom-table tbody tr:hover {
+  background-color: #374151;
+}
+
+body.dark-mode .equipe-card-header h3 {
+  color: #f9fafb;
+}
+
+body.dark-mode .equipe-cost {
+  background-color: #065f46;
+  color: #6ee7b7;
+}
+
+body.dark-mode .equipe-desc {
+  color: #9ca3af;
+}
+
+body.dark-mode .equipe-members {
+  background-color: #111827;
+}
+
+body.dark-mode .equipe-members h4 {
+  color: #9ca3af;
+}
+
+body.dark-mode .member-list li {
+  color: #d1d5db;
+  border-bottom-color: #374151;
+}
+
+body.dark-mode .btn-secondary {
+  background-color: #1f2937;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+body.dark-mode .btn-secondary:hover {
+  background-color: #374151;
+}

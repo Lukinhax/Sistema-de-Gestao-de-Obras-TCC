@@ -1,0 +1,142 @@
+/* reaproveita dashboard.css para layout geral (por estar importado, mas vamos adicionar específicos de tabela) */
+@import '../dashboard/dashboard.css';
+
+.recursos-table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.recursos-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.recursos-table th {
+  background-color: #f9fafb;
+  color: #6b7280;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.recursos-table td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+.recursos-table tr:last-child td {
+  border-bottom: none;
+}
+
+.recursos-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.recurso-nome-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recurso-icon {
+  background: #eff6ff;
+  color: #2e6bee;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.badge-tipo {
+  background-color: #e5e7eb;
+  color: #4b5563;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.fw-bold {
+  font-weight: 600;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.highlight-text {
+  color: #059669;
+  font-weight: 700;
+}
+
+.btn-table-edit {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 600;
+}
+
+.btn-table-edit:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* =========================================
+   DARK MODE OVERRIDES PARA A TABELA
+   ========================================= */
+body.dark-mode .recursos-table-container {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+body.dark-mode .recursos-table th {
+  background-color: #111827;
+  color: #9ca3af;
+  border-color: #374151;
+}
+
+body.dark-mode .recursos-table td {
+  border-color: #374151;
+  color: #d1d5db;
+}
+
+body.dark-mode .recursos-table tbody tr:hover {
+  background-color: #374151;
+}
+
+body.dark-mode .recurso-icon {
+  background-color: #374151;
+  color: #60a5fa;
+}
+
+body.dark-mode .badge-tipo {
+  background-color: #4b5563;
+  color: #f9fafb;
+}
+
+body.dark-mode .btn-table-edit {
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+body.dark-mode .btn-table-edit:hover {
+  background-color: #4b5563;
+  color: #f9fafb;
+}

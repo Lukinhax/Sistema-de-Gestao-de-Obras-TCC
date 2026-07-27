@@ -69,7 +69,12 @@ CREATE TABLE recurso (
     nome VARCHAR(300) NOT NULL,
     tipo VARCHAR(100),
     quantidade INT,
-    custo_unitario NUMERIC(10,2)
+    custo_unitario NUMERIC(10,2),
+    id_empresa INT NOT NULL,
+    FOREIGN KEY (id_empresa)
+        REFERENCES empresa(id_empresa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 -- =========================
@@ -111,7 +116,26 @@ CREATE TABLE custo (
 CREATE TABLE equipe (
     id_equipe SERIAL PRIMARY KEY,
     nome_equipe VARCHAR(300) NOT NULL,
-    descricao TEXT
+    descricao TEXT,
+    id_empresa INT NOT NULL,
+    FOREIGN KEY (id_empresa)
+        REFERENCES empresa(id_empresa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+-- =========================
+-- CARGO
+-- =========================
+CREATE TABLE cargo (
+    id_cargo SERIAL PRIMARY KEY,
+    nome_cargo VARCHAR(300) NOT NULL,
+    nivel_hierarquico INT,
+    id_empresa INT NOT NULL,
+    FOREIGN KEY (id_empresa)
+        REFERENCES empresa(id_empresa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 -- =========================
@@ -121,7 +145,18 @@ CREATE TABLE trabalhador (
     id_trabalhador SERIAL PRIMARY KEY,
     nome_trabalhador VARCHAR(300) NOT NULL,
     telefone_trabalhador VARCHAR(50),
-    custo_diario NUMERIC(10,2)
+    custo_diario NUMERIC(10,2),
+    tipo_vinculo VARCHAR(50), -- Ex: 'Fixo', 'Sob Demanda'
+    id_cargo INT,
+    id_empresa INT NOT NULL,
+    FOREIGN KEY (id_cargo)
+        REFERENCES cargo(id_cargo)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE,
+    FOREIGN KEY (id_empresa)
+        REFERENCES empresa(id_empresa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 -- =========================
@@ -147,7 +182,12 @@ CREATE TABLE equipe_trabalhador (
 CREATE TABLE mao_de_obra (
     id_mao_obra SERIAL PRIMARY KEY,
     data_inicio DATE,
-    data_fim DATE
+    data_fim DATE,
+    id_empresa INT NOT NULL,
+    FOREIGN KEY (id_empresa)
+        REFERENCES empresa(id_empresa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
 );
 
 -- =========================
@@ -180,6 +220,66 @@ CREATE TABLE projeto_mao_obra (
         ON UPDATE CASCADE,
     FOREIGN KEY (id_mao_obra)
         REFERENCES mao_de_obra(id_mao_obra)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+-- =========================
+-- PROJETO ETAPA (CRONOGRAMA / EDT)
+-- =========================
+CREATE TABLE projeto_etapa (
+    id_etapa SERIAL PRIMARY KEY,
+    id_projeto INT NOT NULL,
+    codigo_edt VARCHAR(50) NOT NULL,
+    nome_tarefa VARCHAR(300) NOT NULL,
+    peso_financeiro NUMERIC(5,4), -- Ex: 0.0710 para 7.1%
+    status_farol VARCHAR(50) DEFAULT 'NÃO INICIADA',
+    duracao_dias INT,
+    data_inicio_planejada DATE,
+    data_fim_planejada DATE,
+    data_inicio_real DATE,
+    data_fim_real DATE,
+    execucao_real_perc NUMERIC(5,2) DEFAULT 0.00,
+    FOREIGN KEY (id_projeto)
+        REFERENCES projeto(id_projeto)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+-- =========================
+-- DEPENDÊNCIA DE ETAPAS (GANTT)
+-- =========================
+CREATE TABLE etapa_dependencia (
+    id_dependencia SERIAL PRIMARY KEY,
+    id_etapa_sucessora INT NOT NULL,
+    id_etapa_predecessora INT NOT NULL,
+    tipo_dependencia VARCHAR(50), -- Ex: 'Fim-Inicio'
+    FOREIGN KEY (id_etapa_sucessora)
+        REFERENCES projeto_etapa(id_etapa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (id_etapa_predecessora)
+        REFERENCES projeto_etapa(id_etapa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+);
+
+-- =========================
+-- ALOCAÇÃO DE TRABALHADOR NA ETAPA
+-- =========================
+CREATE TABLE etapa_alocacao_trabalhador (
+    id_alocacao SERIAL PRIMARY KEY,
+    id_etapa INT NOT NULL,
+    id_trabalhador INT NOT NULL,
+    dias_alocados NUMERIC(6,2),
+    data_inicio_alocacao DATE,
+    data_fim_alocacao DATE,
+    FOREIGN KEY (id_etapa)
+        REFERENCES projeto_etapa(id_etapa)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    FOREIGN KEY (id_trabalhador)
+        REFERENCES trabalhador(id_trabalhador)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );

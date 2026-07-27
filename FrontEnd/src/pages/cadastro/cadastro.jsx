@@ -4,6 +4,7 @@ import logo from '../../assets/logo.svg';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import IconButton from '@mui/material/IconButton';
+import { IMaskInput } from 'react-imask';
 import './cadastro.css';
 
 export default function Cadastro() {
@@ -20,24 +21,6 @@ export default function Cadastro() {
 
   const handleChange = (e) => {
     let { id, value } = e.target;
-
-    if (id === 'cnpj') {
-      value = value
-        .replace(/\D/g, '')
-        .replace(/(\d{2})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1/$2')
-        .replace(/(\d{4})(\d{1,2})/, '$1-$2')
-        .replace(/(-\d{2})\d+?$/, '$1');
-    }
-
-    if (id === 'n_telefone') {
-      value = value
-        .replace(/\D/g, '')
-        .replace(/(\d{2})(\d)/, '($1) $2')
-        .replace(/(\d{4,5})(\d{4})/, '$1-$2')
-        .replace(/(-\d{4})\d+?$/, '$1');
-    }
 
     setFormData({
       ...formData,
@@ -126,22 +109,22 @@ export default function Cadastro() {
 
           <div className='input-group'>
             <label htmlFor="n_telefone">Telefone</label>
-            <input 
-              type="text" 
+            <IMaskInput 
+              mask="(00) 00000-0000"
               id="n_telefone"
               value={formData.n_telefone} 
-              onChange={handleChange} 
+              onAccept={(value) => setFormData({...formData, n_telefone: value})}
               placeholder="(00) 00000-0000"
             />
           </div>
 
           <div className='input-group'>
             <label htmlFor="cnpj">CNPJ</label>
-            <input 
-              type="text" 
+            <IMaskInput 
+              mask="00.000.000/0000-00"
               id="cnpj"
               value={formData.cnpj} 
-              onChange={handleChange} 
+              onAccept={(value) => setFormData({...formData, cnpj: value})}
               required 
               placeholder="00.000.000/0000-00"
             />
