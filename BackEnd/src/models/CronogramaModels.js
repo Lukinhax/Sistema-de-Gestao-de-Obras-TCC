@@ -1,4 +1,4 @@
-const pool = require('../config/db'); // Supondo que você exporte o pool/client daqui
+const pool = require('../config/database'); // Supondo que você exporte o pool/client daqui
 
 /**
  * Representa a tabela `projeto_etapa` (Estrutura Analítica do Projeto - EDT)

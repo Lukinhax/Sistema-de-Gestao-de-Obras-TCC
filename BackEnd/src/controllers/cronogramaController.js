@@ -1,5 +1,5 @@
 const { EtapaModel } = require('../models/CronogramaModels');
-const pool = require('../config/db');
+const pool = require('../config/database');
 
 exports.getEtapas = async (req, res) => {
     try {
