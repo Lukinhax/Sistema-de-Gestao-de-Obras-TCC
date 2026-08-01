@@ -267,6 +267,213 @@
 .detalhes-layout.dark .eq-header {
   border-bottom-color: #374151;
 }
+.detalhes-nav button {
+  background: none;
+  border: none;
+  padding: 15px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.detalhes-nav button:hover {
+  color: #111827;
+}
+
+.detalhes-nav button.active {
+  color: #2e6bee;
+  border-bottom-color: #2e6bee;
+}
+
+/* CONTENT */
+.detalhes-content {
+  padding: 30px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* VISÃO GERAL */
+.visao-geral-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.resumo-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.resumo-card h3 {
+  margin: 0 0 15px 0;
+  font-size: 1rem;
+  color: #4b5563;
+}
+
+.big-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+.text-blue { color: #2e6bee; }
+.text-orange { color: #ea580c; }
+
+.progress-bar-container {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #2e6bee;
+  border-radius: 5px;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* SECTIONS */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #111827;
+}
+
+.equipes-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.equipe-alocada-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.eq-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.eq-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #111827;
+}
+
+.eq-body p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+  color: #4b5563;
+}
+
+.eq-cost {
+  margin-top: 15px !important;
+  color: #ea580c !important;
+  font-size: 1.05rem !important;
+}
+
+/* =========================================
+   DARK MODE
+   ========================================= */
+.detalhes-layout.dark {
+  background-color: #111827;
+}
+
+.detalhes-layout.dark .detalhes-header,
+.detalhes-layout.dark .detalhes-nav,
+.detalhes-layout.dark .resumo-card,
+.detalhes-layout.dark .equipe-alocada-card {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.detalhes-layout.dark .obra-title,
+.detalhes-layout.dark .section-header h2,
+.detalhes-layout.dark .eq-header h3 {
+  color: #f9fafb;
+}
+
+.detalhes-layout.dark .back-btn {
+  background-color: #374151 !important;
+  color: #d1d5db !important;
+}
+
+.detalhes-layout.dark .back-btn:hover {
+  background-color: #4b5563 !important;
+}
+
+.detalhes-layout.dark .orcamento-box {
+  background-color: #111827;
+  border-color: #374151;
+}
+
+.detalhes-layout.dark .detalhes-nav button {
+  color: #9ca3af;
+}
+
+.detalhes-layout.dark .detalhes-nav button:hover {
+  color: #e5e7eb;
+}
+
+.detalhes-layout.dark .detalhes-nav button.active {
+  color: #60a5fa;
+  border-bottom-color: #60a5fa;
+}
+
+.detalhes-layout.dark .resumo-card h3,
+.detalhes-layout.dark .eq-body p {
+  color: #d1d5db;
+}
+
+.detalhes-layout.dark .progress-bar-container {
+  background-color: #374151;
+}
+
+.detalhes-layout.dark .eq-header {
+  border-bottom-color: #374151;
+}
 
 .detalhes-layout.dark .text-blue { color: #60a5fa; }
 .detalhes-layout.dark .text-orange { color: #fb923c; }
+
+/* Correção de bug nativo da biblioteca gantt-task-react: O texto do ano na visão Mensal com x=0 vaza para fora do SVG */
+.calendarTop text[x="0"] {
+  text-anchor: start !important;
+  transform: translateX(10px);
+}
+
+/* Evitar que textos (Julho, 2026) sejam cortados abruptamente na borda esquerda do gráfico ao usar o scroll */
+#gantt-chart-container svg {
+  overflow: visible !important;
+}
+ 

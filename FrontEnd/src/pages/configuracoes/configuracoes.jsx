@@ -12,11 +12,13 @@ import { useTheme } from '../../contexts/ThemeContext';
 import Relatorios from './Relatorios';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
+import { usePermissions } from '../../hooks/usePermissions';
 import './configuracoes.css';
 
 export default function Configuracoes() {
   const navigate = useNavigate();
   const { isDarkMode, toggleTheme } = useTheme();
+  const { hasPermission } = usePermissions();
   const [funcionarios, setFuncionarios] = useState([]);
   
   // Form states
@@ -31,7 +33,13 @@ export default function Configuracoes() {
   const [loading, setLoading] = useState(false);
   
   // Navigation Tabs
-  const [activeTab, setActiveTab] = useState('sistema');
+  // Set default tab based on permissions
+  const [activeTab, setActiveTab] = useState(() => {
+    // We can't use hasPermission directly in useState init easily without causing issues if it depends on state, 
+    // but role is initialized synchronously from localStorage in the hook.
+    // Let's just set it in a useEffect or assume 'sistema' and hide it if not permitted.
+    return 'sistema';
+  });
 
   // Edit/Modal mode states
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,8 +92,18 @@ export default function Configuracoes() {
       navigate('/login');
       return;
     }
-    fetchFuncionarios();
-  }, [token]);
+    
+    // Fallback logic for activeTab if they don't have permission for 'sistema'
+    if (!hasPermission('configuracoes_usuarios') && !hasPermission('configuracoes_empresa')) {
+      if (hasPermission('financeiro_relatorios')) {
+        setActiveTab('relatorios');
+      }
+    }
+
+    if (hasPermission('configuracoes_usuarios')) {
+      fetchFuncionarios();
+    }
+  }, [token, hasPermission]);
 
   const fetchFuncionarios = async () => {
     try {
@@ -196,6 +214,14 @@ export default function Configuracoes() {
     setIsModalOpen(true);
   };
 
+  const getPermissaoLabel = (permissaoId) => {
+    for (const cat of PERMISSOES_DISPONIVEIS) {
+      const p = cat.permissoes.find(item => item.id === permissaoId);
+      if (p) return p.label;
+    }
+    return permissaoId;
+  };
+
   const resetForm = () => {
     setNomeUsuario('');
     setPrefixoLogin('');
@@ -258,55 +284,60 @@ export default function Configuracoes() {
         paddingBottom: '10px',
         overflowX: 'auto'
       }}>
-        <button 
-          onClick={() => setActiveTab('sistema')}
-          style={{
-            background: activeTab === 'sistema' ? '#3b82f6' : 'transparent',
-            color: activeTab === 'sistema' ? '#fff' : (isDarkMode ? '#9ca3af' : '#6b7280'),
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.2s',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          <SettingsSuggestIcon fontSize="small" />
-          Sistema e Usuários
-        </button>
+        {(hasPermission('configuracoes_usuarios') || hasPermission('configuracoes_empresa')) && (
+          <button 
+            onClick={() => setActiveTab('sistema')}
+            style={{
+              background: activeTab === 'sistema' ? '#3b82f6' : 'transparent',
+              color: activeTab === 'sistema' ? '#fff' : (isDarkMode ? '#9ca3af' : '#6b7280'),
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <SettingsSuggestIcon fontSize="small" />
+            Sistema e Usuários
+          </button>
+        )}
         
-        <button 
-          onClick={() => setActiveTab('relatorios')}
-          style={{
-            background: activeTab === 'relatorios' ? '#3b82f6' : 'transparent',
-            color: activeTab === 'relatorios' ? '#fff' : (isDarkMode ? '#9ca3af' : '#6b7280'),
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.2s',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          <InsertChartIcon fontSize="small" />
-          Relatórios e Excel
-        </button>
+        {hasPermission('financeiro_relatorios') && (
+          <button 
+            onClick={() => setActiveTab('relatorios')}
+            style={{
+              background: activeTab === 'relatorios' ? '#3b82f6' : 'transparent',
+              color: activeTab === 'relatorios' ? '#fff' : (isDarkMode ? '#9ca3af' : '#6b7280'),
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            <InsertChartIcon fontSize="small" />
+            Relatórios e Excel
+          </button>
+        )}
       </div>
 
       <div className="configuracoes-content">
-        {activeTab === 'sistema' && (
-          <div style={{ display: 'block', width: '100%' }}>
+        {(activeTab === 'sistema' && (hasPermission('configuracoes_usuarios') || hasPermission('configuracoes_empresa'))) && (
+          <div style={{ gridColumn: '1 / -1', width: '100%' }}>
 
             {/* Seção da Tabela de Funcionários */}
-            <section className="card-section list-section" style={{ padding: '20px', borderRadius: '8px', border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`, background: isDarkMode ? '#1f2937' : '#fff' }}>
+            {hasPermission('configuracoes_usuarios') ? (
+              <section className="card-section list-section" style={{ padding: '20px', borderRadius: '8px', border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`, background: isDarkMode ? '#1f2937' : '#fff' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <div>
                   <h2 style={{ margin: 0 }}>Funcionários Cadastrados</h2>
@@ -343,13 +374,15 @@ export default function Configuracoes() {
                         <tr key={func.id_funcionario}>
                           <td className="fw-bold">{func.nome_usuario}</td>
                           <td>{func.email}</td>
-                          <td>
+                          <td style={{ maxWidth: '350px' }}>
                             <div className="badges-container">
-                              {func.permissoes.split(',').map(p => (
-                                <span key={p} className={`badge-permissao ${p.toLowerCase()}`}>
-                                  {p}
+                              {func.permissoes ? func.permissoes.split(',').map(p => (
+                                <span key={p} className={`badge-permissao ${p.split('_')[0]}`}>
+                                  {getPermissaoLabel(p)}
                                 </span>
-                              ))}
+                              )) : (
+                                <span className="empty-permissions">Nenhuma permissão</span>
+                              )}
                             </div>
                           </td>
                           <td>
@@ -367,6 +400,9 @@ export default function Configuracoes() {
                 </div>
               )}
             </section>
+            ) : (
+              <p>Você não tem permissão para gerenciar usuários.</p>
+            )}
 
             {/* Modal de Adicionar/Editar Funcionário */}
             {isModalOpen && (
@@ -450,13 +486,13 @@ export default function Configuracoes() {
 
                     <div className="input-group" style={{ marginTop: '20px' }}>
                       <label>Permissões Específicas de Acesso</label>
-                      <div className="permissions-categories" style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
+                      <div className="permissions-categories">
                         {PERMISSOES_DISPONIVEIS.map(cat => (
-                          <div key={cat.categoria} className="permission-category" style={{ padding: '10px', background: isDarkMode ? '#374151' : '#f9fafb', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}` }}>
-                            <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: isDarkMode ? '#d1d5db' : '#4b5563', borderBottom: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`, paddingBottom: '5px' }}>{cat.categoria}</h4>
-                            <div className="permissions-grid" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
+                          <div key={cat.categoria} className="permission-category">
+                            <h4 className="permission-category-title">{cat.categoria}</h4>
+                            <div className="permissions-grid">
                               {cat.permissoes.map(perm => (
-                                <label key={perm.id} className="permission-checkbox" style={{ color: isDarkMode ? '#f9fafb' : '#374151' }}>
+                                <label key={perm.id} className="permission-checkbox">
                                   <input 
                                     type="checkbox" 
                                     checked={permissoesSelecionadas.includes(perm.id)}
@@ -497,7 +533,9 @@ export default function Configuracoes() {
         )}
 
         {activeTab === 'relatorios' && (
-          <Relatorios token={token} />
+          <div style={{ gridColumn: '1 / -1', width: '100%' }}>
+            <Relatorios token={token} />
+          </div>
         )}
       </div>
     </div>

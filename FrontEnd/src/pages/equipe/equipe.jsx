@@ -19,6 +19,7 @@ import { IMaskInput } from 'react-imask';
 import CurrencyInput from 'react-currency-input-field';
 import logo from '../../assets/logo.svg';
 import { useTheme } from '../../contexts/ThemeContext';
+import { usePermissions } from '../../hooks/usePermissions';
 import './equipe.css';
 
 export default function Equipe() {
@@ -29,6 +30,7 @@ export default function Equipe() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const { isDarkMode, toggleTheme } = useTheme();
+  const { hasPermission } = usePermissions();
 
   // Tabs state: 'trabalhadores' ou 'equipes'
   const [activeTab, setActiveTab] = useState('trabalhadores');
@@ -352,24 +354,36 @@ export default function Equipe() {
           </Link>
           <div className="topbar-divider"></div>
           <nav className="topbar-nav">
-            <Link to="/informacoes-gerais" className={location.pathname === '/informacoes-gerais' ? 'active' : ''}>Resumo</Link>
-            <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Projetos</Link>
-            <Link to="/recursos" className={location.pathname === '/recursos' ? 'active' : ''}>Recursos</Link>
-            <Link to="/equipe" className={location.pathname === '/equipe' ? 'active' : ''}>Equipe</Link>
+            {hasPermission('financeiro_relatorios') && (
+              <Link to="/informacoes-gerais" className={location.pathname === '/informacoes-gerais' ? 'active' : ''}>Resumo</Link>
+            )}
+            {hasPermission('obras_visualizar') && (
+              <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Projetos</Link>
+            )}
+            {hasPermission('recursos_visualizar') && (
+              <Link to="/recursos" className={location.pathname === '/recursos' ? 'active' : ''}>Recursos</Link>
+            )}
+            {hasPermission('equipes_gerenciar') && (
+              <Link to="/equipe" className={location.pathname === '/equipe' ? 'active' : ''}>Equipe</Link>
+            )}
           </nav>
         </div>
         <div className="topbar-right" style={{ gap: '10px' }}>
-          <IconButton onClick={() => navigate('/configuracoes')} style={{ color: isDarkMode ? '#f9fafb' : '#4b5563' }}>
-            <SettingsIcon />
-          </IconButton>
+          {(hasPermission('configuracoes_empresa') || hasPermission('configuracoes_usuarios')) && (
+            <IconButton onClick={() => navigate('/configuracoes')} style={{ color: isDarkMode ? '#f9fafb' : '#4b5563' }}>
+              <SettingsIcon />
+            </IconButton>
+          )}
           <div className="profile-container" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
             <span className="company-name">{empresaNome}</span>
             <KeyboardArrowDownIcon className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`} />
             {isDropdownOpen && (
               <div className="dropdown-menu">
-                <div className="dropdown-item" onClick={() => navigate('/configuracoes')}>
-                  <SettingsIcon fontSize="small" /> Todas as configurações
-                </div>
+                {(hasPermission('configuracoes_empresa') || hasPermission('configuracoes_usuarios')) && (
+                  <div className="dropdown-item" onClick={() => navigate('/configuracoes')}>
+                    <SettingsIcon fontSize="small" /> Todas as configurações
+                  </div>
+                )}
                 <div className="dropdown-item" onClick={(e) => { e.stopPropagation(); toggleTheme(); }}>
                   {isDarkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
                   {isDarkMode ? 'Tema Claro' : 'Tema Escuro'}
@@ -451,17 +465,28 @@ export default function Equipe() {
               <p className="page-subtitle">Cadastre seus profissionais e organize-os em equipes.</p>
             </div>
             {activeTab === 'trabalhadores' ? (
-              <button className="btn-primary" onClick={openCreateTrabalhadorModal}>
-                <AddIcon /> Novo Trabalhador
-              </button>
+              hasPermission('equipes_gerenciar') && (
+                <button className="btn-primary" onClick={openCreateTrabalhadorModal}>
+                  <AddIcon /> Novo Trabalhador
+                </button>
+              )
             ) : (
-              <button className="btn-primary" onClick={openCreateEquipeModal}>
-                <AddIcon /> Nova Equipe
-              </button>
+              hasPermission('equipes_gerenciar') && (
+                <button className="btn-primary" onClick={openCreateEquipeModal}>
+                  <AddIcon /> Nova Equipe
+                </button>
+              )
             )}
           </div>
 
-          <div className="tabs-container">
+          {(!hasPermission('equipes_gerenciar') && !hasPermission('alocacoes_vincular')) ? (
+            <div className="empty-state">
+              <h2>Acesso Negado</h2>
+              <p>Você não tem permissão para visualizar as equipes.</p>
+            </div>
+          ) : (
+            <>
+              <div className="tabs-container">
             <button className={`tab-button ${activeTab === 'trabalhadores' ? 'active' : ''}`} onClick={() => setActiveTab('trabalhadores')}>
               Trabalhadores (Individuais)
             </button>
@@ -498,12 +523,16 @@ export default function Equipe() {
                             <td>{t.telefone_trabalhador || '-'}</td>
                             <td className="highlight-text">{formatCurrency(t.custo_diario)}</td>
                             <td style={{textAlign: 'center'}}>
-                              <IconButton size="small" color="primary" onClick={() => openEditTrabalhadorModal(t)}>
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                              <IconButton size="small" color="error" onClick={() => requestDeleteTrabalhador(t.id_trabalhador)}>
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
+                              {hasPermission('equipes_gerenciar') && (
+                                <>
+                                  <IconButton size="small" color="primary" onClick={() => openEditTrabalhadorModal(t)}>
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton size="small" color="error" onClick={() => requestDeleteTrabalhador(t.id_trabalhador)}>
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -533,12 +562,16 @@ export default function Equipe() {
                             <span className="equipe-cost">{formatCurrency(eq.custo_diario_total)} / dia</span>
                           </div>
                           <div style={{display: 'flex', gap: '4px'}}>
-                            <IconButton size="small" color="primary" onClick={() => openEditEquipeModal(eq)}>
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                            <IconButton size="small" color="error" onClick={() => requestDeleteEquipe(eq.id_equipe)}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
+                            {hasPermission('equipes_gerenciar') && (
+                              <>
+                                <IconButton size="small" color="primary" onClick={() => openEditEquipeModal(eq)}>
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton size="small" color="error" onClick={() => requestDeleteEquipe(eq.id_equipe)}>
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </>
+                            )}
                           </div>
                         </div>
                         <p className="equipe-desc">{eq.descricao || 'Sem descrição'}</p>
@@ -559,27 +592,33 @@ export default function Equipe() {
                                       <small style={{color: '#6b7280'}}>{formatCurrency(membro.custo_diario)}/dia</small>
                                     </span>
                                   </div>
-                                  <IconButton size="small" color="error" onClick={() => requestRemoveMember(eq.id_equipe, membro.id_trabalhador)}>
-                                    <CloseIcon fontSize="small" />
-                                  </IconButton>
+                                  {hasPermission('alocacoes_vincular') && (
+                                    <IconButton size="small" color="error" onClick={() => requestRemoveMember(eq.id_equipe, membro.id_trabalhador)}>
+                                      <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                  )}
                                 </div>
                               ))}
                             </div>
                           )}
                         </div>
-                        <button className="btn-secondary w-100" onClick={() => {
-                          setEquipeSelecionadaParaMembro(eq.id_equipe);
-                          setIsAddMemberModalOpen(true);
-                        }}>
-                          <PersonAddIcon fontSize="small" style={{marginRight: '8px'}} /> Adicionar Membro
-                        </button>
+                        {hasPermission('alocacoes_vincular') && (
+                          <button className="btn-secondary w-100" onClick={() => {
+                            setEquipeSelecionadaParaMembro(eq.id_equipe);
+                            setIsAddMemberModalOpen(true);
+                          }}>
+                            <PersonAddIcon fontSize="small" style={{marginRight: '8px'}} /> Adicionar Membro
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             )}
-          </div>
+            </div>
+            </>
+          )}
         </main>
       </div>
 

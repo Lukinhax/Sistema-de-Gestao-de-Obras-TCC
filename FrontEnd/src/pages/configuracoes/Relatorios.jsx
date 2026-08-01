@@ -10,23 +10,30 @@ export default function Relatorios({ token }) {
   const { isDarkMode } = useTheme();
   const [recursos, setRecursos] = useState([]);
   const [filtroTipo, setFiltroTipo] = useState('');
-  const [filtroQuantidade, setFiltroQuantidade] = useState('');
+  const [filtroQuantidadeMin, setFiltroQuantidadeMin] = useState('');
+  const [filtroQuantidadeMax, setFiltroQuantidadeMax] = useState('');
   const [filtroNome, setFiltroNome] = useState('');
-  const [filtroCusto, setFiltroCusto] = useState('');
+  const [filtroCustoMin, setFiltroCustoMin] = useState('');
+  const [filtroCustoMax, setFiltroCustoMax] = useState('');
   const [ordenacao, setOrdenacao] = useState('padrao');
   
   // Estados para Projetos
   const [projetos, setProjetos] = useState([]);
   const [filtroNomeProjeto, setFiltroNomeProjeto] = useState('');
   const [filtroStatusProjeto, setFiltroStatusProjeto] = useState('');
-  const [filtroOrcamentoProjeto, setFiltroOrcamentoProjeto] = useState('');
+  const [filtroOrcamentoMin, setFiltroOrcamentoMin] = useState('');
+  const [filtroOrcamentoMax, setFiltroOrcamentoMax] = useState('');
+  const [filtroDataInicioMin, setFiltroDataInicioMin] = useState('');
+  const [filtroDataInicioMax, setFiltroDataInicioMax] = useState('');
   const [ordenacaoProjeto, setOrdenacaoProjeto] = useState('padrao');
 
   // Estados para Trabalhadores
   const [trabalhadores, setTrabalhadores] = useState([]);
   const [filtroNomeTrabalhador, setFiltroNomeTrabalhador] = useState('');
   const [filtroEspecialidade, setFiltroEspecialidade] = useState('');
-  const [filtroCustoTrabalhador, setFiltroCustoTrabalhador] = useState('');
+  const [filtroRemuneracaoMin, setFiltroRemuneracaoMin] = useState('');
+  const [filtroRemuneracaoMax, setFiltroRemuneracaoMax] = useState('');
+  const [filtroTipoPagamento, setFiltroTipoPagamento] = useState('');
   const [ordenacaoTrabalhador, setOrdenacaoTrabalhador] = useState('padrao');
 
   // Controle de qual relatório está visível
@@ -102,20 +109,18 @@ export default function Relatorios({ token }) {
       );
     }
 
-    if (filtroQuantidade === 'baixo') {
-      dadosFiltrados = dadosFiltrados.filter(r => r.quantidade < 10);
-    } else if (filtroQuantidade === 'alto') {
-      dadosFiltrados = dadosFiltrados.filter(r => r.quantidade >= 10);
-    } else if (filtroQuantidade === 'zerado') {
-      dadosFiltrados = dadosFiltrados.filter(r => r.quantidade === 0);
+    if (filtroQuantidadeMin !== '') {
+      dadosFiltrados = dadosFiltrados.filter(r => r.quantidade >= Number(filtroQuantidadeMin));
+    }
+    if (filtroQuantidadeMax !== '') {
+      dadosFiltrados = dadosFiltrados.filter(r => r.quantidade <= Number(filtroQuantidadeMax));
     }
 
-    if (filtroCusto === 'alto') {
-      dadosFiltrados = dadosFiltrados.filter(r => r.custo_unitario >= 500);
-    } else if (filtroCusto === 'medio') {
-      dadosFiltrados = dadosFiltrados.filter(r => r.custo_unitario >= 100 && r.custo_unitario < 500);
-    } else if (filtroCusto === 'baixo') {
-      dadosFiltrados = dadosFiltrados.filter(r => r.custo_unitario < 100);
+    if (filtroCustoMin !== '') {
+      dadosFiltrados = dadosFiltrados.filter(r => r.custo_unitario >= Number(filtroCustoMin));
+    }
+    if (filtroCustoMax !== '') {
+      dadosFiltrados = dadosFiltrados.filter(r => r.custo_unitario <= Number(filtroCustoMax));
     }
 
     // Ordenação
@@ -188,12 +193,21 @@ export default function Relatorios({ token }) {
       );
     }
 
-    if (filtroOrcamentoProjeto === 'alto') {
-      dadosFiltrados = dadosFiltrados.filter(p => p.orcamento_total >= 100000);
-    } else if (filtroOrcamentoProjeto === 'medio') {
-      dadosFiltrados = dadosFiltrados.filter(p => p.orcamento_total >= 10000 && p.orcamento_total < 100000);
-    } else if (filtroOrcamentoProjeto === 'baixo') {
-      dadosFiltrados = dadosFiltrados.filter(p => p.orcamento_total < 10000);
+    if (filtroOrcamentoMin !== '') {
+      dadosFiltrados = dadosFiltrados.filter(p => p.orcamento_total >= Number(filtroOrcamentoMin));
+    }
+    if (filtroOrcamentoMax !== '') {
+      dadosFiltrados = dadosFiltrados.filter(p => p.orcamento_total <= Number(filtroOrcamentoMax));
+    }
+
+    if (filtroDataInicioMin !== '') {
+      dadosFiltrados = dadosFiltrados.filter(p => p.data_inicio && new Date(p.data_inicio) >= new Date(filtroDataInicioMin));
+    }
+    if (filtroDataInicioMax !== '') {
+      // Ajustar data limite para o fim do dia caso apenas a data (YYYY-MM-DD) seja passada
+      const dataMax = new Date(filtroDataInicioMax);
+      dataMax.setUTCHours(23, 59, 59, 999);
+      dadosFiltrados = dadosFiltrados.filter(p => p.data_inicio && new Date(p.data_inicio) <= dataMax);
     }
 
     // Ordenação
@@ -254,12 +268,15 @@ export default function Relatorios({ token }) {
       );
     }
 
-    if (filtroCustoTrabalhador === 'alto') {
-      dadosFiltrados = dadosFiltrados.filter(t => t.salario_ou_diaria >= 300);
-    } else if (filtroCustoTrabalhador === 'medio') {
-      dadosFiltrados = dadosFiltrados.filter(t => t.salario_ou_diaria >= 100 && t.salario_ou_diaria < 300);
-    } else if (filtroCustoTrabalhador === 'baixo') {
-      dadosFiltrados = dadosFiltrados.filter(t => t.salario_ou_diaria < 100);
+    if (filtroRemuneracaoMin !== '') {
+      dadosFiltrados = dadosFiltrados.filter(t => t.salario_ou_diaria >= Number(filtroRemuneracaoMin));
+    }
+    if (filtroRemuneracaoMax !== '') {
+      dadosFiltrados = dadosFiltrados.filter(t => t.salario_ou_diaria <= Number(filtroRemuneracaoMax));
+    }
+
+    if (filtroTipoPagamento !== '') {
+      dadosFiltrados = dadosFiltrados.filter(t => t.tipo_pagamento === filtroTipoPagamento);
     }
 
     // Ordenação
@@ -305,6 +322,7 @@ export default function Relatorios({ token }) {
   const tiposUnicos = [...new Set(recursos.map(r => r.tipo).filter(Boolean))];
   const statusUnicos = [...new Set(projetos.map(p => p.status_projeto).filter(Boolean))];
   const especialidadesUnicas = [...new Set(trabalhadores.map(t => t.especialidade).filter(Boolean))];
+  const tiposPagamentoUnicos = [...new Set(trabalhadores.map(t => t.tipo_pagamento).filter(Boolean))];
 
   return (
     <section className="card-section form-section" style={{ marginTop: '20px' }}>
@@ -414,23 +432,21 @@ export default function Relatorios({ token }) {
           </div>
           
           <div className="form-group" style={{ flex: '1 1 200px' }}>
-            <label>Filtrar por Quantidade</label>
-            <select value={filtroQuantidade} onChange={(e) => setFiltroQuantidade(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}>
-              <option value="">Qualquer Quantidade</option>
-              <option value="baixo">Estoque Baixo (Menor que 10)</option>
-              <option value="alto">Estoque Alto (10 ou mais)</option>
-              <option value="zerado">Sem Estoque (Zero)</option>
-            </select>
+            <label>Quantidade Mínima</label>
+            <input type="number" placeholder="Ex: 10" min="0" value={filtroQuantidadeMin} onChange={(e) => setFiltroQuantidadeMin(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
+          </div>
+          <div className="form-group" style={{ flex: '1 1 200px' }}>
+            <label>Quantidade Máxima</label>
+            <input type="number" placeholder="Ex: 500" min="0" value={filtroQuantidadeMax} onChange={(e) => setFiltroQuantidadeMax(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
           </div>
 
           <div className="form-group" style={{ flex: '1 1 200px' }}>
-            <label>Custo Unitário</label>
-            <select value={filtroCusto} onChange={(e) => setFiltroCusto(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}>
-              <option value="">Qualquer Valor</option>
-              <option value="baixo">Baixo Custo (Abaixo de R$ 100)</option>
-              <option value="medio">Custo Médio (R$ 100 até R$ 500)</option>
-              <option value="alto">Alto Custo (Acima de R$ 500)</option>
-            </select>
+            <label>Custo Mínimo (R$)</label>
+            <input type="number" placeholder="Ex: 50.00" min="0" step="0.01" value={filtroCustoMin} onChange={(e) => setFiltroCustoMin(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
+          </div>
+          <div className="form-group" style={{ flex: '1 1 200px' }}>
+            <label>Custo Máximo (R$)</label>
+            <input type="number" placeholder="Ex: 1000.00" min="0" step="0.01" value={filtroCustoMax} onChange={(e) => setFiltroCustoMax(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
           </div>
 
           <div className="form-group" style={{ flex: '1 1 200px' }}>
@@ -505,13 +521,20 @@ export default function Relatorios({ token }) {
           </div>
           
           <div className="form-group" style={{ flex: '1 1 200px' }}>
-            <label>Faixa de Orçamento</label>
-            <select value={filtroOrcamentoProjeto} onChange={(e) => setFiltroOrcamentoProjeto(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}>
-              <option value="">Qualquer Valor</option>
-              <option value="baixo">Abaixo de R$ 10.000</option>
-              <option value="medio">Entre R$ 10.000 e R$ 100.000</option>
-              <option value="alto">Acima de R$ 100.000</option>
-            </select>
+            <label>Orçamento Mínimo (R$)</label>
+            <input type="number" placeholder="Ex: 10000" min="0" step="100" value={filtroOrcamentoMin} onChange={(e) => setFiltroOrcamentoMin(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
+          </div>
+          <div className="form-group" style={{ flex: '1 1 200px' }}>
+            <label>Orçamento Máximo (R$)</label>
+            <input type="number" placeholder="Ex: 500000" min="0" step="100" value={filtroOrcamentoMax} onChange={(e) => setFiltroOrcamentoMax(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
+          </div>
+          <div className="form-group" style={{ flex: '1 1 200px' }}>
+            <label>Data Início (De)</label>
+            <input type="date" value={filtroDataInicioMin} onChange={(e) => setFiltroDataInicioMin(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
+          </div>
+          <div className="form-group" style={{ flex: '1 1 200px' }}>
+            <label>Data Início (Até)</label>
+            <input type="date" value={filtroDataInicioMax} onChange={(e) => setFiltroDataInicioMax(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
           </div>
 
           <div className="form-group" style={{ flex: '1 1 200px' }}>
@@ -586,13 +609,21 @@ export default function Relatorios({ token }) {
           </div>
           
           <div className="form-group" style={{ flex: '1 1 200px' }}>
-            <label>Faixa de Remuneração/Custo</label>
-            <select value={filtroCustoTrabalhador} onChange={(e) => setFiltroCustoTrabalhador(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}>
-              <option value="">Qualquer Valor</option>
-              <option value="baixo">Menos de R$ 100 (Diária Baixa)</option>
-              <option value="medio">R$ 100 até R$ 300 (Diária Média)</option>
-              <option value="alto">Acima de R$ 300 (Especialista/Mensal)</option>
+            <label>Tipo de Pagamento</label>
+            <select value={filtroTipoPagamento} onChange={(e) => setFiltroTipoPagamento(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}>
+              <option value="">Qualquer Tipo</option>
+              {tiposPagamentoUnicos.map(tp => (
+                <option key={tp} value={tp}>{tp}</option>
+              ))}
             </select>
+          </div>
+          <div className="form-group" style={{ flex: '1 1 200px' }}>
+            <label>Remuneração Min (R$)</label>
+            <input type="number" placeholder="Ex: 50" min="0" step="10" value={filtroRemuneracaoMin} onChange={(e) => setFiltroRemuneracaoMin(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
+          </div>
+          <div className="form-group" style={{ flex: '1 1 200px' }}>
+            <label>Remuneração Max (R$)</label>
+            <input type="number" placeholder="Ex: 300" min="0" step="10" value={filtroRemuneracaoMax} onChange={(e) => setFiltroRemuneracaoMax(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
           </div>
 
           <div className="form-group" style={{ flex: '1 1 200px' }}>

@@ -13,4 +13,7 @@ router.put('/:id', projetoController.updateProjeto);
 router.put('/:id/favorito', projetoController.toggleFavorito);
 router.delete('/:id', projetoController.deleteProjeto);
 
+const relatorioController = require('../controllers/relatorioController');
+router.post('/:id/exportar/pdf', relatorioController.gerarRelatorioPDF);
+
 module.exports = router;

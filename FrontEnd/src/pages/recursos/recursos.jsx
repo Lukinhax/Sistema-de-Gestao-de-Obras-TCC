@@ -15,6 +15,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import logo from '../../assets/logo.svg';
 import CurrencyInput from 'react-currency-input-field';
 import { useTheme } from '../../contexts/ThemeContext';
+import { usePermissions } from '../../hooks/usePermissions';
 import './recursos.css';
 
 export default function Recursos() {
@@ -25,6 +26,7 @@ export default function Recursos() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const { isDarkMode, toggleTheme } = useTheme();
+  const { hasPermission } = usePermissions();
 
   // Recursos State
   const [recursos, setRecursos] = useState([]);
@@ -181,24 +183,36 @@ export default function Recursos() {
           </Link>
           <div className="topbar-divider"></div>
           <nav className="topbar-nav">
-            <Link to="/informacoes-gerais" className={location.pathname === '/informacoes-gerais' ? 'active' : ''}>Resumo</Link>
-            <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Projetos</Link>
-            <Link to="/recursos" className={location.pathname === '/recursos' ? 'active' : ''}>Recursos</Link>
-            <Link to="/equipe" className={location.pathname === '/equipe' ? 'active' : ''}>Equipe</Link>
+            {hasPermission('financeiro_relatorios') && (
+              <Link to="/informacoes-gerais" className={location.pathname === '/informacoes-gerais' ? 'active' : ''}>Resumo</Link>
+            )}
+            {hasPermission('obras_visualizar') && (
+              <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Projetos</Link>
+            )}
+            {hasPermission('recursos_visualizar') && (
+              <Link to="/recursos" className={location.pathname === '/recursos' ? 'active' : ''}>Recursos</Link>
+            )}
+            {hasPermission('equipes_gerenciar') && (
+              <Link to="/equipe" className={location.pathname === '/equipe' ? 'active' : ''}>Equipe</Link>
+            )}
           </nav>
         </div>
         <div className="topbar-right" style={{ gap: '10px' }}>
-          <IconButton onClick={() => navigate('/configuracoes')} style={{ color: isDarkMode ? '#f9fafb' : '#4b5563' }}>
-            <SettingsIcon />
-          </IconButton>
+          {(hasPermission('configuracoes_empresa') || hasPermission('configuracoes_usuarios')) && (
+            <IconButton onClick={() => navigate('/configuracoes')} style={{ color: isDarkMode ? '#f9fafb' : '#4b5563' }}>
+              <SettingsIcon />
+            </IconButton>
+          )}
           <div className="profile-container" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
             <span className="company-name">{empresaNome}</span>
             <KeyboardArrowDownIcon className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`} />
             {isDropdownOpen && (
               <div className="dropdown-menu">
-                <div className="dropdown-item" onClick={() => navigate('/configuracoes')}>
-                  <SettingsIcon fontSize="small" /> Todas as configurações
-                </div>
+                {(hasPermission('configuracoes_empresa') || hasPermission('configuracoes_usuarios')) && (
+                  <div className="dropdown-item" onClick={() => navigate('/configuracoes')}>
+                    <SettingsIcon fontSize="small" /> Todas as configurações
+                  </div>
+                )}
                 <div className="dropdown-item" onClick={(e) => { e.stopPropagation(); toggleTheme(); }}>
                   {isDarkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
                   {isDarkMode ? 'Tema Claro' : 'Tema Escuro'}
@@ -230,12 +244,19 @@ export default function Recursos() {
               <h1 className="page-title">Estoque Global de Recursos</h1>
               <p className="page-subtitle">Gerencie todos os materiais e equipamentos da sua empresa.</p>
             </div>
-            <button className="btn-primary" onClick={() => openModal()}>
-              <AddIcon /> Novo Recurso
-            </button>
+            {hasPermission('recursos_adicionar') && (
+              <button className="btn-primary" onClick={() => openModal()}>
+                <AddIcon /> Novo Recurso
+              </button>
+            )}
           </div>
 
-          {recursos.length === 0 ? (
+          {!hasPermission('recursos_visualizar') ? (
+            <div className="empty-state">
+              <h2>Acesso Negado</h2>
+              <p>Você não tem permissão para visualizar o estoque.</p>
+            </div>
+          ) : recursos.length === 0 ? (
             <div className="empty-state">
               <InventoryIcon className="empty-icon" />
               <h2>Estoque Vazio</h2>
@@ -267,12 +288,16 @@ export default function Recursos() {
                       <td>{formatCurrency(r.custo_unitario)}</td>
                       <td className="highlight-text">{formatCurrency(r.quantidade * r.custo_unitario)}</td>
                       <td>
-                        <IconButton size="small" onClick={() => openModal(r)}>
-                          <EditIcon fontSize="small" color="primary"/>
-                        </IconButton>
-                        <IconButton size="small" onClick={() => setConfirmModal({ isOpen: true, id: r.id_recurso })}>
-                          <DeleteIcon fontSize="small" color="error"/>
-                        </IconButton>
+                        {hasPermission('recursos_adicionar') && (
+                          <IconButton size="small" onClick={() => openModal(r)}>
+                            <EditIcon fontSize="small" color="primary"/>
+                          </IconButton>
+                        )}
+                        {hasPermission('recursos_excluir') && (
+                          <IconButton size="small" onClick={() => setConfirmModal({ isOpen: true, id: r.id_recurso })}>
+                            <DeleteIcon fontSize="small" color="error"/>
+                          </IconButton>
+                        )}
                       </td>
                     </tr>
                   ))}

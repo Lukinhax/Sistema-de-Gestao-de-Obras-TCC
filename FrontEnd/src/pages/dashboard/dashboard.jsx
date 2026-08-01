@@ -17,6 +17,7 @@ import StarBorderIcon from '@mui/icons-material/StarBorder';
 import logo from '../../assets/logo.svg';
 import CurrencyInput from 'react-currency-input-field';
 import { useTheme } from '../../contexts/ThemeContext';
+import { usePermissions } from '../../hooks/usePermissions';
 import './dashboard.css';
 
 export default function Dashboard() {
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
   const { isDarkMode, toggleTheme } = useTheme();
+  const { hasPermission } = usePermissions();
 
   // Projetos State
   const [projetos, setProjetos] = useState([]);
@@ -221,21 +223,31 @@ export default function Dashboard() {
           <div className="topbar-divider"></div>
 
           <nav className="topbar-nav">
-            <Link to="/informacoes-gerais" className={location.pathname === '/informacoes-gerais' ? 'active' : ''}>Resumo</Link>
-            <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Projetos</Link>
-            <Link to="/recursos" className={location.pathname === '/recursos' ? 'active' : ''}>Recursos</Link>
-            <Link to="/equipe" className={location.pathname === '/equipe' ? 'active' : ''}>Equipe</Link>
+            {hasPermission('financeiro_relatorios') && (
+              <Link to="/informacoes-gerais" className={location.pathname === '/informacoes-gerais' ? 'active' : ''}>Resumo</Link>
+            )}
+            {hasPermission('obras_visualizar') && (
+              <Link to="/dashboard" className={location.pathname === '/dashboard' ? 'active' : ''}>Projetos</Link>
+            )}
+            {hasPermission('recursos_visualizar') && (
+              <Link to="/recursos" className={location.pathname === '/recursos' ? 'active' : ''}>Recursos</Link>
+            )}
+            {hasPermission('equipes_gerenciar') && (
+              <Link to="/equipe" className={location.pathname === '/equipe' ? 'active' : ''}>Equipe</Link>
+            )}
           </nav>
         </div>
 
         <div className="topbar-right" style={{ gap: '10px' }}>
-          <IconButton 
-            onClick={() => navigate('/configuracoes')} 
-            title="Configurações" 
-            style={{ color: isDarkMode ? '#f9fafb' : '#4b5563' }}
-          >
-            <SettingsIcon />
-          </IconButton>
+          {(hasPermission('configuracoes_empresa') || hasPermission('configuracoes_usuarios')) && (
+            <IconButton 
+              onClick={() => navigate('/configuracoes')} 
+              title="Configurações" 
+              style={{ color: isDarkMode ? '#f9fafb' : '#4b5563' }}
+            >
+              <SettingsIcon />
+            </IconButton>
+          )}
 
           <div className="profile-container" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
             <span className="company-name">{empresaNome}</span>
@@ -243,10 +255,12 @@ export default function Dashboard() {
             
             {isDropdownOpen && (
               <div className="dropdown-menu">
-                <div className="dropdown-item" onClick={() => navigate('/configuracoes')}>
-                  <SettingsIcon fontSize="small" />
-                  Todas as configurações
-                </div>
+                {(hasPermission('configuracoes_empresa') || hasPermission('configuracoes_usuarios')) && (
+                  <div className="dropdown-item" onClick={() => navigate('/configuracoes')}>
+                    <SettingsIcon fontSize="small" />
+                    Todas as configurações
+                  </div>
+                )}
                 <div className="dropdown-item" onClick={(e) => { 
                   e.stopPropagation(); 
                   toggleTheme();
@@ -290,14 +304,21 @@ export default function Dashboard() {
               <h1 className="page-title">Minhas Obras</h1>
               <p className="page-subtitle">Gerencie todos os seus projetos de construção em andamento.</p>
             </div>
-            <button className="btn-primary" onClick={() => { setEditMode(false); setIsModalOpen(true); }}>
-              <AddIcon />
-              Nova Obra
-            </button>
+            {hasPermission('obras_criar') && (
+              <button className="btn-primary" onClick={() => { setEditMode(false); setIsModalOpen(true); }}>
+                <AddIcon />
+                Nova Obra
+              </button>
+            )}
           </div>
 
           {/* LISTA DE PROJETOS */}
-          {projetos.length === 0 ? (
+          {!hasPermission('obras_visualizar') ? (
+            <div className="empty-state">
+              <h2>Acesso Negado</h2>
+              <p>Você não tem permissão para visualizar as obras.</p>
+            </div>
+          ) : projetos.length === 0 ? (
             <div className="empty-state">
               <BusinessCenterIcon className="empty-icon" />
               <h2>Nenhuma obra cadastrada</h2>
@@ -317,12 +338,16 @@ export default function Dashboard() {
                       </span>
                     </div>
                     <div style={{ display: 'flex', gap: '5px' }}>
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); openEditModal(projeto); }}>
-                        <EditIcon fontSize="small" style={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}/>
-                      </IconButton>
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); setConfirmModal({ isOpen: true, id: projeto.id_projeto }); }}>
-                        <DeleteIcon fontSize="small" style={{ color: '#ef4444' }}/>
-                      </IconButton>
+                      {hasPermission('obras_criar') && (
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); openEditModal(projeto); }}>
+                          <EditIcon fontSize="small" style={{ color: isDarkMode ? '#9ca3af' : '#6b7280' }}/>
+                        </IconButton>
+                      )}
+                      {hasPermission('obras_excluir') && (
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); setConfirmModal({ isOpen: true, id: projeto.id_projeto }); }}>
+                          <DeleteIcon fontSize="small" style={{ color: '#ef4444' }}/>
+                        </IconButton>
+                      )}
                     </div>
                   </div>
                   <p className="projeto-desc">{projeto.descricao_projeto || 'Sem descrição.'}</p>

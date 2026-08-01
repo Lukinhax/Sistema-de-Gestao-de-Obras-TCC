@@ -27,6 +27,12 @@ class EmpresaModel {
     const result = await pool.query(query, [cnpj]);
     return result.rows[0];
   }
+
+  static async findById(id_empresa) {
+    const query = `SELECT id_empresa, nome_empresa, email FROM empresa WHERE id_empresa = $1`;
+    const result = await pool.query(query, [id_empresa]);
+    return result.rows[0];
+  }
 }
 
 module.exports = EmpresaModel;

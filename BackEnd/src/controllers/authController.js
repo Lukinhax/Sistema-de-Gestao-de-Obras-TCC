@@ -62,32 +62,71 @@ class AuthController {
 
       // Buscar empresa pelo email
       const empresa = await EmpresaModel.findByEmail(email);
-      if (!empresa) {
-        return res.status(404).json({ message: "E-mail ou senha incorretos." });
+      
+      if (empresa) {
+        // Comparar senhas
+        const isMatch = await bcrypt.compare(senha, empresa.senha_hash);
+        if (!isMatch) {
+          return res.status(400).json({ message: "E-mail ou senha incorretos." });
+        }
+
+        // Gerar Token JWT
+        const token = jwt.sign(
+          { id_empresa: empresa.id_empresa },
+          process.env.JWT_SECRET || "default_secret",
+          { expiresIn: "1d" }
+        );
+
+        return res.status(200).json({
+          message: "Login realizado com sucesso!",
+          token,
+          empresa: {
+            id_empresa: empresa.id_empresa,
+            nome_empresa: empresa.nome_empresa,
+            email: empresa.email,
+          },
+        });
       }
 
-      // Comparar senhas
-      const isMatch = await bcrypt.compare(senha, empresa.senha_hash);
-      if (!isMatch) {
-        return res.status(400).json({ message: "E-mail ou senha incorretos." });
+      // Se não encontrou empresa, busca como funcionário
+      const FuncionarioModel = require("../models/funcionarioModel");
+      const funcionario = await FuncionarioModel.findByEmail(email);
+
+      if (funcionario) {
+        // Comparar senhas do funcionário
+        const isMatch = await bcrypt.compare(senha, funcionario.senha_hash);
+        if (!isMatch) {
+          return res.status(400).json({ message: "E-mail ou senha incorretos." });
+        }
+
+        // Buscar dados da empresa para retornar ao frontend, mantendo compatibilidade
+        const empresaVinculada = await EmpresaModel.findById(funcionario.id_empresa);
+
+        // Gerar Token JWT
+        const token = jwt.sign(
+          { 
+            id_empresa: funcionario.id_empresa, 
+            id_funcionario: funcionario.id_funcionario 
+          },
+          process.env.JWT_SECRET || "default_secret",
+          { expiresIn: "1d" }
+        );
+
+        return res.status(200).json({
+          message: "Login realizado com sucesso!",
+          token,
+          empresa: empresaVinculada, // Frontend usa isso para saber a empresa atual
+          funcionario: {
+            id_funcionario: funcionario.id_funcionario,
+            nome_usuario: funcionario.nome_usuario,
+            email: funcionario.email,
+            permissoes: funcionario.permissoes
+          }
+        });
       }
 
-      // Gerar Token JWT
-      const token = jwt.sign(
-        { id_empresa: empresa.id_empresa },
-        process.env.JWT_SECRET || "default_secret",
-        { expiresIn: "1d" }
-      );
-
-      res.status(200).json({
-        message: "Login realizado com sucesso!",
-        token,
-        empresa: {
-          id_empresa: empresa.id_empresa,
-          nome_empresa: empresa.nome_empresa,
-          email: empresa.email,
-        },
-      });
+      // Se não encontrou nem empresa nem funcionário
+      return res.status(404).json({ message: "E-mail ou senha incorretos." });
     } catch (error) {
       console.error("Erro no login:", error);
       res.status(500).json({ message: "Erro interno do servidor." });

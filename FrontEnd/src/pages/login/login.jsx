@@ -36,6 +36,15 @@ export default function Login() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('empresa', JSON.stringify(data.empresa));
       
+      // Se for funcionário, salva dados dele, senão limpa e salva role empresa
+      if (data.funcionario) {
+        localStorage.setItem('funcionario', JSON.stringify(data.funcionario));
+        localStorage.setItem('role', 'funcionario');
+      } else {
+        localStorage.removeItem('funcionario');
+        localStorage.setItem('role', 'empresa');
+      }
+      
       navigate('/dashboard'); // Redireciona para o dashboard
     } catch (err) {
       setError(err.message);

@@ -1,18 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Gantt, ViewMode } from 'gantt-task-react';
+import 'gantt-task-react/dist/index.css';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import CurrencyInput from 'react-currency-input-field';
-import './projetoDetalhes.css'; // reaproveitar os modais e tabelas
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import TableViewIcon from '@mui/icons-material/TableView';
+import html2canvas from 'html2canvas';
+import * as XLSX from 'xlsx';
+import { usePermissions } from '../../hooks/usePermissions';
+import './projetoDetalhes.css'; 
 
 export default function CronogramaTab({ idProjeto }) {
+  const { hasPermission } = usePermissions();
   const [etapas, setEtapas] = useState([]);
   const [curvaS, setCurvaS] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState(ViewMode.Month);
   
   // Form Nova Etapa
   const [codigoEdt, setCodigoEdt] = useState('');
@@ -52,7 +61,15 @@ export default function CronogramaTab({ idProjeto }) {
       const res = await fetch(`http://localhost:3000/api/projetos/${idProjeto}/cronograma/curvas`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      if(res.ok) setCurvaS(await res.json());
+      if(res.ok) {
+        const rawData = await res.json();
+        const numericData = rawData.map(item => ({
+          ...item,
+          planejado: Number(item.planejado) || 0,
+          realizado: Number(item.realizado) || 0
+        }));
+        setCurvaS(numericData);
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -61,7 +78,6 @@ export default function CronogramaTab({ idProjeto }) {
     setLoading(true);
     try {
       const pesoDecimal = parseFloat(pesoFinanceiro) / 100;
-      
       const res = await fetch(`http://localhost:3000/api/projetos/${idProjeto}/cronograma/etapas`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -102,24 +118,209 @@ export default function CronogramaTab({ idProjeto }) {
 
   const formatDateBR = (dateString) => {
     if (!dateString) return '-';
-    const date = new Date(dateString);
+    let date = new Date(dateString);
+    if (isNaN(date.getTime()) || date.getFullYear() < 2000 || date.getFullYear() > 2100) {
+      return '-';
+    }
     date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
     return date.toLocaleDateString('pt-BR');
   };
 
+  const isDateValid = (dateString) => {
+    if (!dateString) return false;
+    let date = new Date(dateString);
+    return !isNaN(date.getTime()) && date.getFullYear() > 2000 && date.getFullYear() < 2100;
+  };
+
+  const handleExportExcel = () => {
+    const dataToExport = etapas.map(e => ({
+      'EDT': e.codigo_edt,
+      'Nome da Tarefa': e.nome_tarefa,
+      'Duração Prevista (Dias)': e.duracao_dias,
+      'Peso Financeiro (%)': (Number(e.peso_financeiro) * 100).toFixed(2),
+      'Avanço Realizado (%)': Number(e.execucao_real_perc).toFixed(2),
+      'Data Início Prevista': formatDateBR(e.data_inicio_planejada),
+      'Data Fim Prevista': formatDateBR(e.data_fim_planejada),
+      'Data Fim Real': formatDateBR(e.data_fim_real),
+      'Status': e.status_farol
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(dataToExport);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Cronograma");
+    XLSX.writeFile(wb, `Cronograma_Obras_${idProjeto}.xlsx`);
+  };
+
+  const handleExportPDF = async () => {
+    setExportLoading(true);
+    try {
+      let ganttImage = null;
+      let curvaSImage = null;
+
+      const ganttEl = document.getElementById('gantt-chart-container');
+      if (ganttEl) {
+        const canvasG = await html2canvas(ganttEl, { scale: 2 });
+        ganttImage = canvasG.toDataURL('image/png');
+      }
+
+      const curvaEl = document.getElementById('curvas-chart-container');
+      if (curvaEl) {
+        const canvasC = await html2canvas(curvaEl, { scale: 2 });
+        curvaSImage = canvasC.toDataURL('image/png');
+      }
+
+      const res = await fetch(`http://localhost:3000/api/projetos/${idProjeto}/exportar/pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ nomeProjeto: 'Obra ' + idProjeto, ganttImage, curvaSImage })
+      });
+
+      if (!res.ok) throw new Error("Erro ao gerar PDF.");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ORC_Relatorio_Projeto_${idProjeto}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Falha ao exportar PDF: ' + err.message);
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  // Filtrar tarefas inválidas do Gantt
+  const validEtapas = etapas.filter(e => isDateValid(e.data_inicio_planejada) && isDateValid(e.data_fim_planejada));
+  const invalidCount = etapas.length - validEtapas.length;
+
+  const ganttTasks = validEtapas.map((e) => {
+    let start = new Date(e.data_inicio_planejada);
+    start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
+    
+    let end = new Date(e.data_fim_planejada);
+    end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
+    
+    // Prevent start >= end 
+    if(start.getTime() >= end.getTime()){
+       end = new Date(start.getTime());
+       end.setDate(end.getDate() + 1);
+    }
+
+    return {
+      start: start,
+      end: end,
+      name: `${e.codigo_edt} - ${e.nome_tarefa}`,
+      id: String(e.id_etapa),
+      type: 'task',
+      progress: Number(e.execucao_real_perc) || 0,
+      isDisabled: !hasPermission('obras_editar'),
+      styles: { 
+        progressColor: e.status_farol === 'Atrasado' ? '#ef4444' : '#10b981',
+        progressSelectedColor: e.status_farol === 'Atrasado' ? '#b91c1c' : '#059669',
+        backgroundColor: '#3b82f6',
+        backgroundSelectedColor: '#2563eb'
+      }
+    };
+  });
+
+  const getColumnWidth = () => {
+    switch (viewMode) {
+      case ViewMode.Day: return 60;
+      case ViewMode.Week: return 120;
+      case ViewMode.Month: return 250;
+      default: return 60;
+    }
+  };
+
+  // Hack para traduzir o "W" (Week) para "Sem" na visão semanal
+  useEffect(() => {
+    if (viewMode === ViewMode.Week) {
+      const timer = setTimeout(() => {
+        const texts = document.querySelectorAll('#gantt-chart-container svg text');
+        texts.forEach(t => {
+          if (t.textContent && t.textContent.trim().startsWith('W')) {
+            t.textContent = t.textContent.replace('W', 'Sem ');
+          }
+        });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [viewMode, ganttTasks]);
+
+  // Custom components to translate gantt-task-react internal table
+  const CustomTaskListHeader = ({ headerHeight, fontFamily, fontSize }) => {
+    return (
+      <div style={{ display: 'flex', height: headerHeight, fontFamily, fontSize, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', alignItems: 'center', color: '#6b7280', fontWeight: 'bold' }}>
+        <div style={{ flex: 1, paddingLeft: '10px', minWidth: '150px' }}>Nome da Tarefa</div>
+        <div style={{ width: '80px', borderLeft: '1px solid #e5e7eb', paddingLeft: '5px' }}>Início</div>
+        <div style={{ width: '80px', borderLeft: '1px solid #e5e7eb', paddingLeft: '5px' }}>Fim</div>
+      </div>
+    );
+  };
+
+  const CustomTaskListTable = ({ rowHeight, rowWidth, tasks, fontFamily, fontSize }) => {
+    return (
+      <div>
+        {tasks.map((t, i) => (
+          <div key={i} style={{ display: 'flex', height: rowHeight, fontFamily, fontSize, borderBottom: '1px solid #e5e7eb', alignItems: 'center', background: '#fff', color: '#374151', cursor: 'pointer' }} onClick={() => {
+              if(!hasPermission('obras_editar')) return;
+              const etapa = etapas.find(e => String(e.id_etapa) === t.id);
+              if(etapa) {
+                setProgressoModal({ isOpen: true, etapa });
+                setProgressoPerc(etapa.execucao_real_perc);
+                setDataFimReal(etapa.data_fim_real ? etapa.data_fim_real.split('T')[0] : '');
+              }
+          }}>
+            <div style={{ flex: 1, paddingLeft: '10px', minWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={t.name}>{t.name}</div>
+            <div style={{ width: '80px', borderLeft: '1px solid #e5e7eb', paddingLeft: '5px', fontSize: '0.85rem' }}>{t.start.toLocaleDateString('pt-BR')}</div>
+            <div style={{ width: '80px', borderLeft: '1px solid #e5e7eb', paddingLeft: '5px', fontSize: '0.85rem' }}>{t.end.toLocaleDateString('pt-BR')}</div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="cronograma-container">
-      <div className="chart-section" style={{ background: 'var(--bg-card, #fff)', padding: '20px', borderRadius: '12px', marginBottom: '30px', border: '1px solid var(--border-color, #e5e7eb)' }}>
+      
+      {/* ACTION BAR */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '20px', gap: '15px' }}>
+        <button className="btn-secondary" onClick={handleExportExcel} style={{display: 'flex', alignItems: 'center'}}>
+          <TableViewIcon fontSize="small" style={{marginRight: '5px'}} /> Excel
+        </button>
+        <button className="btn-secondary" onClick={handleExportPDF} disabled={exportLoading} style={{display: 'flex', alignItems: 'center'}}>
+          <PictureAsPdfIcon fontSize="small" style={{marginRight: '5px'}} /> 
+          {exportLoading ? 'Gerando...' : 'PDF'}
+        </button>
+        {hasPermission('obras_editar') && (
+          <button className="btn-primary" onClick={() => setIsModalOpen(true)} style={{ display: 'flex', alignItems: 'center' }}>
+            <AddIcon fontSize="small" style={{marginRight: '8px'}} /> Nova Etapa
+          </button>
+        )}
+      </div>
+
+      <div id="curvas-chart-container" className="chart-section" style={{ background: 'var(--bg-card, #fff)', padding: '20px', borderRadius: '12px', marginBottom: '30px', border: '1px solid var(--border-color, #e5e7eb)' }}>
         <h3 style={{marginBottom: '20px', fontSize: '1.2rem', color: 'var(--text-primary)'}}>Curva S (Avanço Físico-Financeiro)</h3>
         {curvaS.length > 0 ? (
           <div style={{ width: '100%', height: 350 }}>
             <ResponsiveContainer>
-              <LineChart data={curvaS} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <LineChart data={curvaS} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e5e7eb)" />
-                <XAxis dataKey="data" tickFormatter={formatDateBR} stroke="var(--text-secondary)" />
+                <XAxis 
+                  dataKey="data" 
+                  tickFormatter={formatDateBR} 
+                  stroke="var(--text-secondary)" 
+                  minTickGap={30}
+                  tick={{ fontSize: 12 }} 
+                />
                 <YAxis domain={[0, 100]} tickFormatter={(val) => `${val}%`} stroke="var(--text-secondary)" />
                 <Tooltip 
-                  formatter={(val, name) => [`${val}%`, name === 'planejado' ? 'Avanço Planejado' : 'Avanço Realizado']}
+                  formatter={(val, name) => [`${Number(val || 0).toFixed(2)}%`, name === 'planejado' ? 'Avanço Planejado Acum.' : 'Avanço Realizado Acum.']}
                   labelFormatter={formatDateBR}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
                 />
@@ -136,12 +337,56 @@ export default function CronogramaTab({ idProjeto }) {
         )}
       </div>
 
+      <div id="gantt-chart-container" style={{ background: 'var(--bg-card, #fff)', padding: '20px', borderRadius: '12px', marginBottom: '30px', border: '1px solid var(--border-color, #e5e7eb)', overflowX: 'auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+          <div>
+            <h3 style={{ fontSize: '1.2rem', color: 'var(--text-primary)', margin: 0 }}>Gráfico de Gantt Interativo</h3>
+            {invalidCount > 0 && (
+               <p style={{ color: '#ea580c', fontSize: '0.85rem', marginTop: '5px' }}>
+                 ⚠️ {invalidCount} tarefa(s) não estão sendo exibidas por possuírem datas inválidas. Edite-as na tabela abaixo.
+               </p>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>Visualização:</span>
+            <select 
+               value={viewMode} 
+               onChange={(e) => setViewMode(e.target.value)}
+               style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+            >
+              <option value={ViewMode.Day}>Diário</option>
+              <option value={ViewMode.Week}>Semanal</option>
+              <option value={ViewMode.Month}>Mensal</option>
+            </select>
+          </div>
+        </div>
+        
+        {ganttTasks.length > 0 ? (
+          <Gantt 
+            tasks={ganttTasks} 
+            viewMode={viewMode}
+            locale="pt-BR"
+            listCellWidth="310px"
+            columnWidth={getColumnWidth()}
+            TaskListHeader={CustomTaskListHeader}
+            TaskListTable={CustomTaskListTable}
+            onDoubleClick={(task) => {
+              if(!hasPermission('obras_editar')) return;
+              const etapa = etapas.find(e => String(e.id_etapa) === task.id);
+              if(etapa) {
+                setProgressoModal({ isOpen: true, etapa: etapa });
+                setProgressoPerc(etapa.execucao_real_perc);
+                setDataFimReal(etapa.data_fim_real ? etapa.data_fim_real.split('T')[0] : '');
+              }
+            }}
+          />
+        ) : (
+          <div className="empty-state">Adicione tarefas para visualizar o Gantt.</div>
+        )}
+      </div>
+
       <div className="table-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-        <h3>Estrutura Analítica do Projeto (EDT)</h3>
-        <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
-          <AddIcon fontSize="small" style={{marginRight: '8px'}} />
-          Nova Etapa
-        </button>
+        <h3>Tabela de Controle (EDT)</h3>
       </div>
 
       <div className="table-container">
@@ -155,8 +400,8 @@ export default function CronogramaTab({ idProjeto }) {
                 <th>Nome da Tarefa</th>
                 <th>Status</th>
                 <th>Peso (%)</th>
-                <th>Previsto</th>
-                <th>Realizado</th>
+                <th>Realizado (%)</th>
+                <th>Data Início Prevista</th>
                 <th>Data Fim Prevista</th>
                 <th>Ações</th>
               </tr>
@@ -172,17 +417,19 @@ export default function CronogramaTab({ idProjeto }) {
                     </span>
                   </td>
                   <td>{(Number(e.peso_financeiro) * 100).toFixed(2)}%</td>
-                  <td>-</td>
                   <td className="highlight-text">{Number(e.execucao_real_perc).toFixed(2)}%</td>
+                  <td>{formatDateBR(e.data_inicio_planejada)}</td>
                   <td>{formatDateBR(e.data_fim_planejada)}</td>
                   <td>
-                    <IconButton size="small" color="primary" onClick={() => {
-                      setProgressoModal({ isOpen: true, etapa: e });
-                      setProgressoPerc(e.execucao_real_perc);
-                      setDataFimReal(e.data_fim_real ? e.data_fim_real.split('T')[0] : '');
-                    }}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
+                    {hasPermission('obras_editar') && (
+                      <IconButton size="small" color="primary" onClick={() => {
+                        setProgressoModal({ isOpen: true, etapa: e });
+                        setProgressoPerc(e.execucao_real_perc);
+                        setDataFimReal(e.data_fim_real ? e.data_fim_real.split('T')[0] : '');
+                      }}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -246,8 +493,10 @@ export default function CronogramaTab({ idProjeto }) {
             </div>
             <form onSubmit={handleAtualizarProgresso} className="modal-form">
               <div className="form-group">
-                <label>Tarefa</label>
-                <input type="text" value={progressoModal.etapa.nome_tarefa} disabled />
+                <label>Tarefa Selecionada</label>
+                <div style={{ padding: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', fontWeight: 'bold' }}>
+                  {progressoModal.etapa.codigo_edt} - {progressoModal.etapa.nome_tarefa}
+                </div>
               </div>
               <div className="form-group">
                 <label>% Executada Real *</label>

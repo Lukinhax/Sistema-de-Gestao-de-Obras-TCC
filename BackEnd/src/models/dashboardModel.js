@@ -1,37 +1,66 @@
 const pool = require("../config/database");
 
 class DashboardModel {
-  static async getStats(id_empresa) {
+  static async getStats(id_empresa, filtros = {}) {
     const client = await pool.connect();
     
     try {
+      const { status, dataInicio, dataFim } = filtros;
+      
+      let whereP = `WHERE id_empresa = $1`;
+      let whereAliasP = `WHERE p.id_empresa = $1`;
+      let params = [id_empresa];
+      let pIdx = 2;
+
+      if (status) {
+        whereP += ` AND status_projeto = $${pIdx}`;
+        whereAliasP += ` AND p.status_projeto = $${pIdx}`;
+        params.push(status);
+        pIdx++;
+      }
+      if (dataInicio) {
+        whereP += ` AND data_inicio >= $${pIdx}`;
+        whereAliasP += ` AND p.data_inicio >= $${pIdx}`;
+        params.push(dataInicio);
+        pIdx++;
+      }
+      if (dataFim) {
+        whereP += ` AND data_inicio <= $${pIdx}`;
+        whereAliasP += ` AND p.data_inicio <= $${pIdx}`;
+        params.push(dataFim + ' 23:59:59');
+        pIdx++;
+      }
+
       // 1. Total de projetos
-      const queryProjetos = `SELECT COUNT(*) as total FROM projeto WHERE id_empresa = $1`;
-      const resProjetos = await client.query(queryProjetos, [id_empresa]);
+      const resProjetos = await client.query(`SELECT COUNT(*) as total FROM projeto ${whereP}`, params);
       
       // 2. Projetos em andamento
-      const queryAndamento = `SELECT COUNT(*) as total FROM projeto WHERE id_empresa = $1 AND status_projeto = 'Em Andamento'`;
-      const resAndamento = await client.query(queryAndamento, [id_empresa]);
+      let andamentoParams = [...params];
+      let andamentoWhere = whereP + ` AND status_projeto = 'Em Andamento'`;
+      const resAndamento = await client.query(`SELECT COUNT(*) as total FROM projeto ${andamentoWhere}`, andamentoParams);
       
-      // 3. Total Orçamento de todos os projetos
-      const queryOrcamento = `SELECT COALESCE(SUM(orcamento_total), 0) as total FROM projeto WHERE id_empresa = $1`;
-      const resOrcamento = await client.query(queryOrcamento, [id_empresa]);
+      // 3. Total Orçamento
+      const resOrcamento = await client.query(`SELECT COALESCE(SUM(orcamento_total), 0) as total FROM projeto ${whereP}`, params);
       
-      // 4. Total Gasto (Custos) de todos os projetos dessa empresa
-      const queryCustos = `
+      // 4. Total Gasto (Custos)
+      const resCustos = await client.query(`
         SELECT COALESCE(SUM(c.valor), 0) as total 
         FROM custo c
         JOIN projeto p ON c.id_projeto = p.id_projeto
-        WHERE p.id_empresa = $1
-      `;
-      const resCustos = await client.query(queryCustos, [id_empresa]);
+        ${whereAliasP}
+      `, params);
 
       // 5. Total de Trabalhadores Ativos
-      const queryTrabalhadores = `SELECT COUNT(*) as total FROM trabalhador WHERE id_empresa = $1`;
-      const resTrabalhadores = await client.query(queryTrabalhadores, [id_empresa]);
+      const resTrabalhadores = await client.query(`SELECT COUNT(*) as total FROM trabalhador WHERE id_empresa = $1`, [id_empresa]);
 
-      // 6. Custo por projeto (para gráfico)
-      const queryGraficoCustos = `
+      // 5.1 Valor em Estoque
+      const resEstoque = await client.query(`
+        SELECT COALESCE(SUM(quantidade * custo_unitario), 0) as total 
+        FROM recurso WHERE id_empresa = $1
+      `, [id_empresa]);
+
+      // 6. Custo por projeto
+      const resGraficoCustos = await client.query(`
         SELECT 
           p.id_projeto, 
           p.nome_projeto, 
@@ -39,12 +68,22 @@ class DashboardModel {
           COALESCE(SUM(c.valor), 0) as custo_realizado
         FROM projeto p
         LEFT JOIN custo c ON p.id_projeto = c.id_projeto
-        WHERE p.id_empresa = $1
+        ${whereAliasP}
         GROUP BY p.id_projeto, p.nome_projeto, p.orcamento_total
         ORDER BY p.id_projeto DESC
         LIMIT 5
-      `;
-      const resGraficoCustos = await client.query(queryGraficoCustos, [id_empresa]);
+      `, params);
+
+      // 7. Gráfico Pizza: Status Obras
+      const resStatusDist = await client.query(`
+        SELECT status_projeto as name, COUNT(*) as value 
+        FROM projeto 
+        ${whereP}
+        GROUP BY status_projeto
+      `, params);
+
+      // 8. Gráfico Especialidades (Coluna não existe atualmente, retornando vazio)
+      const resEspecialidades = { rows: [] };
 
       return {
         totalProjetos: parseInt(resProjetos.rows[0].total),
@@ -52,11 +91,14 @@ class DashboardModel {
         orcamentoTotal: parseFloat(resOrcamento.rows[0].total),
         custoTotal: parseFloat(resCustos.rows[0].total),
         totalTrabalhadores: parseInt(resTrabalhadores.rows[0].total),
+        valorEstoque: parseFloat(resEstoque.rows[0].total),
         graficoCustos: resGraficoCustos.rows.map(row => ({
           nome_projeto: row.nome_projeto,
           orcamento_total: parseFloat(row.orcamento_total),
           custo_realizado: parseFloat(row.custo_realizado)
-        }))
+        })),
+        graficoStatus: resStatusDist.rows.map(r => ({ name: r.name || 'Sem Status', value: parseInt(r.value) })),
+        graficoEspecialidades: resEspecialidades.rows.map(r => ({ name: r.name || 'Sem Especialidade', value: parseInt(r.value) }))
       };
     } finally {
       client.release();
