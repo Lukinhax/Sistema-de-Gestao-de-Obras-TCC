@@ -195,38 +195,42 @@ export default function CronogramaTab({ idProjeto }) {
   };
 
   // Filtrar tarefas inválidas do Gantt
-  const validEtapas = etapas.filter(e => isDateValid(e.data_inicio_planejada) && isDateValid(e.data_fim_planejada));
-  const invalidCount = etapas.length - validEtapas.length;
+  const { validEtapas, invalidCount } = React.useMemo(() => {
+    const valid = etapas.filter(e => isDateValid(e.data_inicio_planejada) && isDateValid(e.data_fim_planejada));
+    return { validEtapas: valid, invalidCount: etapas.length - valid.length };
+  }, [etapas]);
 
-  const ganttTasks = validEtapas.map((e) => {
-    let start = new Date(e.data_inicio_planejada);
-    start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
-    
-    let end = new Date(e.data_fim_planejada);
-    end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
-    
-    // Prevent start >= end 
-    if(start.getTime() >= end.getTime()){
-       end = new Date(start.getTime());
-       end.setDate(end.getDate() + 1);
-    }
-
-    return {
-      start: start,
-      end: end,
-      name: `${e.codigo_edt} - ${e.nome_tarefa}`,
-      id: String(e.id_etapa),
-      type: 'task',
-      progress: Number(e.execucao_real_perc) || 0,
-      isDisabled: !hasPermission('obras_editar'),
-      styles: { 
-        progressColor: e.status_farol === 'Atrasado' ? '#ef4444' : '#10b981',
-        progressSelectedColor: e.status_farol === 'Atrasado' ? '#b91c1c' : '#059669',
-        backgroundColor: '#3b82f6',
-        backgroundSelectedColor: '#2563eb'
+  const ganttTasks = React.useMemo(() => {
+    return validEtapas.map((e) => {
+      let start = new Date(e.data_inicio_planejada);
+      start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
+      
+      let end = new Date(e.data_fim_planejada);
+      end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
+      
+      // Prevent start >= end 
+      if(start.getTime() >= end.getTime()){
+         end = new Date(start.getTime());
+         end.setDate(end.getDate() + 1);
       }
-    };
-  });
+
+      return {
+        start: start,
+        end: end,
+        name: `${e.codigo_edt} - ${e.nome_tarefa}`,
+        id: String(e.id_etapa),
+        type: 'task',
+        progress: Number(e.execucao_real_perc) || 0,
+        isDisabled: !hasPermission('obras_criar'),
+        styles: { 
+          progressColor: e.status_farol === 'Atrasado' ? '#ef4444' : '#10b981',
+          progressSelectedColor: e.status_farol === 'Atrasado' ? '#b91c1c' : '#059669',
+          backgroundColor: '#3b82f6',
+          backgroundSelectedColor: '#2563eb'
+        }
+      };
+    });
+  }, [validEtapas, hasPermission]);
 
   const getColumnWidth = () => {
     switch (viewMode) {
@@ -253,22 +257,22 @@ export default function CronogramaTab({ idProjeto }) {
   }, [viewMode, ganttTasks]);
 
   // Custom components to translate gantt-task-react internal table
-  const CustomTaskListHeader = ({ headerHeight, fontFamily, fontSize }) => {
-    return (
+  const CustomTaskListHeader = React.useMemo(() => {
+    return ({ headerHeight, fontFamily, fontSize }) => (
       <div style={{ display: 'flex', height: headerHeight, fontFamily, fontSize, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', alignItems: 'center', color: '#6b7280', fontWeight: 'bold' }}>
         <div style={{ flex: 1, paddingLeft: '10px', minWidth: '150px' }}>Nome da Tarefa</div>
         <div style={{ width: '80px', borderLeft: '1px solid #e5e7eb', paddingLeft: '5px' }}>Início</div>
         <div style={{ width: '80px', borderLeft: '1px solid #e5e7eb', paddingLeft: '5px' }}>Fim</div>
       </div>
     );
-  };
+  }, []);
 
-  const CustomTaskListTable = ({ rowHeight, rowWidth, tasks, fontFamily, fontSize }) => {
-    return (
+  const CustomTaskListTable = React.useMemo(() => {
+    return ({ rowHeight, rowWidth, tasks, fontFamily, fontSize }) => (
       <div>
         {tasks.map((t, i) => (
           <div key={i} style={{ display: 'flex', height: rowHeight, fontFamily, fontSize, borderBottom: '1px solid #e5e7eb', alignItems: 'center', background: '#fff', color: '#374151', cursor: 'pointer' }} onClick={() => {
-              if(!hasPermission('obras_editar')) return;
+              if(!hasPermission('obras_criar')) return;
               const etapa = etapas.find(e => String(e.id_etapa) === t.id);
               if(etapa) {
                 setProgressoModal({ isOpen: true, etapa });
@@ -283,7 +287,7 @@ export default function CronogramaTab({ idProjeto }) {
         ))}
       </div>
     );
-  };
+  }, [hasPermission, etapas]);
 
   return (
     <div className="cronograma-container">
@@ -297,7 +301,7 @@ export default function CronogramaTab({ idProjeto }) {
           <PictureAsPdfIcon fontSize="small" style={{marginRight: '5px'}} /> 
           {exportLoading ? 'Gerando...' : 'PDF'}
         </button>
-        {hasPermission('obras_editar') && (
+        {hasPermission('obras_criar') && (
           <button className="btn-primary" onClick={() => setIsModalOpen(true)} style={{ display: 'flex', alignItems: 'center' }}>
             <AddIcon fontSize="small" style={{marginRight: '8px'}} /> Nova Etapa
           </button>
@@ -371,7 +375,7 @@ export default function CronogramaTab({ idProjeto }) {
             TaskListHeader={CustomTaskListHeader}
             TaskListTable={CustomTaskListTable}
             onDoubleClick={(task) => {
-              if(!hasPermission('obras_editar')) return;
+              if(!hasPermission('obras_criar')) return;
               const etapa = etapas.find(e => String(e.id_etapa) === task.id);
               if(etapa) {
                 setProgressoModal({ isOpen: true, etapa: etapa });
@@ -421,7 +425,7 @@ export default function CronogramaTab({ idProjeto }) {
                   <td>{formatDateBR(e.data_inicio_planejada)}</td>
                   <td>{formatDateBR(e.data_fim_planejada)}</td>
                   <td>
-                    {hasPermission('obras_editar') && (
+                    {hasPermission('obras_criar') && (
                       <IconButton size="small" color="primary" onClick={() => {
                         setProgressoModal({ isOpen: true, etapa: e });
                         setProgressoPerc(e.execucao_real_perc);

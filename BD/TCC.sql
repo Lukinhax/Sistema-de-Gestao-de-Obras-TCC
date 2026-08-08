@@ -38,6 +38,7 @@ CREATE TABLE projeto (
     status_projeto VARCHAR(100),
     orcamento_total NUMERIC(12,2),
     id_empresa INT NOT NULL,
+    is_favorito BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (id_empresa)
         REFERENCES empresa(id_empresa)
         ON DELETE CASCADE
@@ -240,6 +241,7 @@ CREATE TABLE projeto_etapa (
     data_inicio_real DATE,
     data_fim_real DATE,
     execucao_real_perc NUMERIC(5,2) DEFAULT 0.00,
+    id_empresa INT,
     FOREIGN KEY (id_projeto)
         REFERENCES projeto(id_projeto)
         ON DELETE CASCADE

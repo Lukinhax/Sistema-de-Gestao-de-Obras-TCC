@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 export function usePermissions() {
   const [role, setRole] = useState(null);
@@ -21,7 +21,7 @@ export function usePermissions() {
     }
   }, []);
 
-  const hasPermission = (permissaoNecessaria) => {
+  const hasPermission = useCallback((permissaoNecessaria) => {
     // Se a role não foi carregada ainda, assumimos false para evitar flickering,
     // mas na maioria das vezes useEffect já rodou rápido, ou podemos assumir true para empresa (default).
     // Aqui se for null, deixamos passar porque é a primeira renderização e logo ele checa.
@@ -33,7 +33,7 @@ export function usePermissions() {
     
     // Se for funcionário, checa se a permissão específica está na lista
     return permissoes.includes(permissaoNecessaria);
-  };
+  }, [role, permissoes]);
 
   return { role, permissoes, hasPermission };
 }

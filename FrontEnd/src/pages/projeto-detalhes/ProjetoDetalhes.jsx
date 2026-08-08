@@ -12,6 +12,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import CurrencyInput from 'react-currency-input-field';
 import { useTheme } from '../../contexts/ThemeContext';
+import { usePermissions } from '../../hooks/usePermissions';
 import './projetoDetalhes.css';
 import CronogramaTab from './CronogramaTab';
 
@@ -19,6 +20,7 @@ export default function ProjetoDetalhes() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isDarkMode } = useTheme();
+  const { hasPermission } = usePermissions();
 
   // Dados Globais
   const [projeto, setProjeto] = useState(null);
@@ -215,6 +217,18 @@ export default function ProjetoDetalhes() {
     return <div className="loading-screen">Carregando detalhes da obra...</div>;
   }
 
+  if (!hasPermission('obras_visualizar')) {
+    return (
+      <div className={`detalhes-layout ${isDarkMode ? 'dark' : ''}`}>
+        <div className="empty-state" style={{ marginTop: '100px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <h2>Acesso Negado</h2>
+          <p>Você não tem permissão para visualizar as obras.</p>
+          <button className="btn-primary" style={{ marginTop: '20px' }} onClick={() => navigate('/dashboard')}>Voltar ao Início</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`detalhes-layout ${isDarkMode ? 'dark' : ''}`}>
       {/* HEADER DA OBRA */}
@@ -301,9 +315,11 @@ export default function ProjetoDetalhes() {
           <div className="tab-section">
             <div className="section-header">
               <h2>Materiais e Equipamentos na Obra</h2>
-              <button className="btn-primary" onClick={() => setIsRecursoModalOpen(true)}>
-                <AddIcon /> Alocar do Estoque
-              </button>
+              {hasPermission('obras_criar') && (
+                <button className="btn-primary" onClick={() => setIsRecursoModalOpen(true)}>
+                  <AddIcon /> Alocar do Estoque
+                </button>
+              )}
             </div>
             
             {recursosAlocados.length === 0 ? (
@@ -327,9 +343,11 @@ export default function ProjetoDetalhes() {
                       <td>{r.quantidade_projeto}</td>
                       <td className="fw-bold text-blue">{formatCurrency(r.custo_total)}</td>
                       <td>
-                        <IconButton size="small" color="error" onClick={() => handleRemoverRecurso(r.id_recurso)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {hasPermission('obras_criar') && (
+                          <IconButton size="small" color="error" onClick={() => handleRemoverRecurso(r.id_recurso)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -344,9 +362,11 @@ export default function ProjetoDetalhes() {
           <div className="tab-section">
             <div className="section-header">
               <h2>Mão de Obra Alocada</h2>
-              <button className="btn-primary" onClick={() => setIsEquipeModalOpen(true)}>
-                <AddIcon /> Alocar Equipe
-              </button>
+              {hasPermission('alocacoes_vincular') && (
+                <button className="btn-primary" onClick={() => setIsEquipeModalOpen(true)}>
+                  <AddIcon /> Alocar Equipe
+                </button>
+              )}
             </div>
             
             {equipesAlocadas.length === 0 ? (
@@ -359,9 +379,11 @@ export default function ProjetoDetalhes() {
                     <div className="equipe-alocada-card" key={eq.id_mao_obra}>
                       <div className="eq-header">
                         <h3>{eq.nome_equipe}</h3>
-                        <IconButton size="small" color="error" onClick={() => handleRemoverEquipe(eq.id_mao_obra)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {hasPermission('alocacoes_vincular') && (
+                          <IconButton size="small" color="error" onClick={() => handleRemoverEquipe(eq.id_mao_obra)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
                       </div>
                       <div className="eq-body">
                         <p><strong>Período:</strong> {new Date(eq.data_inicio).toLocaleDateString()} até {new Date(eq.data_fim).toLocaleDateString()} ({dias} dias)</p>
@@ -381,9 +403,11 @@ export default function ProjetoDetalhes() {
           <div className="tab-section">
             <div className="section-header">
               <h2>Lançamentos Financeiros da Obra</h2>
-              <button className="btn-primary" onClick={() => setIsCustoModalOpen(true)}>
-                <AddIcon /> Registrar Despesa
-              </button>
+              {hasPermission('financeiro_custos') && (
+                <button className="btn-primary" onClick={() => setIsCustoModalOpen(true)}>
+                  <AddIcon /> Registrar Despesa
+                </button>
+              )}
             </div>
             
             {custos.length === 0 ? (
@@ -405,9 +429,11 @@ export default function ProjetoDetalhes() {
                       <td className="fw-bold">{c.descricao}</td>
                       <td className="highlight-text text-red">{formatCurrency(c.valor)}</td>
                       <td>
-                        <IconButton size="small" color="error" onClick={() => handleRemoverCusto(c.id_custo)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {hasPermission('financeiro_custos') && (
+                          <IconButton size="small" color="error" onClick={() => handleRemoverCusto(c.id_custo)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
                       </td>
                     </tr>
                   ))}

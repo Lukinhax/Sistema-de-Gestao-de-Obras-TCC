@@ -61,6 +61,11 @@ class FuncionarioController {
       const id_empresa = req.empresaId;
       const updateData = req.body;
 
+      if (updateData.senha) {
+        const salt = await bcrypt.genSalt(10);
+        updateData.senha_hash = await bcrypt.hash(updateData.senha, salt);
+      }
+
       const funcionarioAtualizado = await FuncionarioModel.update(id, id_empresa, updateData);
 
       if (!funcionarioAtualizado) {

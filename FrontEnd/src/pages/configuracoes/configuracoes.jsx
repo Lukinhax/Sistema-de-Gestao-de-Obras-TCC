@@ -442,47 +442,43 @@ export default function Configuracoes() {
                       />
                     </div>
 
-                    {!editMode && (
-                      <>
-                        <div className="input-group" style={{ marginTop: '15px' }}>
-                          <label htmlFor="prefixoLogin">Login do Funcionário</label>
-                          <div className="login-input-wrapper" style={{ display: 'flex' }}>
-                            <input 
-                              type="text" 
-                              id="prefixoLogin"
-                              value={prefixoLogin} 
-                              onChange={(e) => setPrefixoLogin(e.target.value.replace(/\s+/g, ''))} 
-                              required 
-                              placeholder="Ex: joao"
-                              style={{ flex: 1, padding: '10px', borderRadius: '6px 0 0 6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}
-                            />
-                            <span className="dominio-label" style={{ padding: '10px 15px', background: isDarkMode ? '#4b5563' : '#f3f4f6', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderLeft: 'none', borderRadius: '0 6px 6px 0', color: isDarkMode ? '#d1d5db' : '#6b7280' }}>{dominioEmpresa}</span>
-                          </div>
-                        </div>
+                    <div className="input-group" style={{ marginTop: '15px' }}>
+                      <label htmlFor="prefixoLogin">Login do Funcionário</label>
+                      <div className="login-input-wrapper" style={{ display: 'flex' }}>
+                        <input 
+                          type="text" 
+                          id="prefixoLogin"
+                          value={prefixoLogin} 
+                          onChange={(e) => setPrefixoLogin(e.target.value.replace(/\s+/g, ''))} 
+                          required 
+                          placeholder="Ex: joao"
+                          style={{ flex: 1, padding: '10px', borderRadius: '6px 0 0 6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}
+                        />
+                        <span className="dominio-label" style={{ padding: '10px 15px', background: isDarkMode ? '#4b5563' : '#f3f4f6', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderLeft: 'none', borderRadius: '0 6px 6px 0', color: isDarkMode ? '#d1d5db' : '#6b7280' }}>{dominioEmpresa}</span>
+                      </div>
+                    </div>
 
-                        <div className="input-group" style={{ marginTop: '15px' }}>
-                          <label htmlFor="senha">Senha de Acesso</label>
-                          <div className="password-input-wrapper" style={{ position: 'relative' }}>
-                            <input 
-                              type={showPassword ? "text" : "password"} 
-                              id="senha"
-                              value={senha} 
-                              onChange={(e) => setSenha(e.target.value)} 
-                              required={!editMode}
-                              placeholder="Digite uma senha segura"
-                              style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}
-                            />
-                            <IconButton 
-                              size="small"
-                              onClick={() => setShowPassword(!showPassword)}
-                              style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', color: isDarkMode ? '#9ca3af' : '#6b7280' }}
-                            >
-                              {showPassword ? <VisibilityOff /> : <Visibility />}
-                            </IconButton>
-                          </div>
-                        </div>
-                      </>
-                    )}
+                    <div className="input-group" style={{ marginTop: '15px' }}>
+                      <label htmlFor="senha">{editMode ? 'Nova Senha (Opcional)' : 'Senha de Acesso'}</label>
+                      <div className="password-input-wrapper" style={{ position: 'relative' }}>
+                        <input 
+                          type={showPassword ? "text" : "password"} 
+                          id="senha"
+                          value={senha} 
+                          onChange={(e) => setSenha(e.target.value)} 
+                          required={!editMode}
+                          placeholder={editMode ? "Deixe em branco para não alterar" : "Digite uma senha segura"}
+                          style={{ width: '100%', boxSizing: 'border-box', padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }}
+                        />
+                        <IconButton 
+                          size="small"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{ position: 'absolute', right: '5px', top: '50%', transform: 'translateY(-50%)', color: isDarkMode ? '#9ca3af' : '#6b7280' }}
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </div>
+                    </div>
 
                     <div className="input-group" style={{ marginTop: '20px' }}>
                       <label>Permissões Específicas de Acesso</label>

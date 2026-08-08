@@ -58,18 +58,18 @@ export default function Login() {
       </Link>
       <div className='login-box'>
         <h1>Login</h1>
-        <p>Acesse o sistema com suas credenciais de empresa.</p>
+        <p>Acesse o sistema com suas credenciais de empresa ou faça login como funcionário.</p>
         
         <form onSubmit={handleLogin} className='login-form'>
           <div className='input-group'>
-            <label htmlFor="email">E-mail</label>
+            <label htmlFor="email">E-mail ou Usuário</label>
             <input 
               type="email" 
               id="email"
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
               required 
-              placeholder="Digite seu e-mail"
+              placeholder="Insira o nome do seu usuário ou e-mail de acesso"
             />
           </div>
 
@@ -82,7 +82,7 @@ export default function Login() {
                 value={senha} 
                 onChange={(e) => setSenha(e.target.value)} 
                 required 
-                placeholder="Digite sua senha"
+                placeholder="Insira sua senha"
               />
               <IconButton 
                 size="small"

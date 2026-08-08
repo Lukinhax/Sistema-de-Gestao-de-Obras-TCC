@@ -34,16 +34,27 @@ class FuncionarioModel {
   }
 
   static async update(id_funcionario, id_empresa, updateData) {
-    const { nome_usuario, permissoes } = updateData;
+    const { nome_usuario, permissoes, senha_hash, email } = updateData;
     const query = `
       UPDATE funcionario_usuario 
       SET 
         nome_usuario = COALESCE($1, nome_usuario),
-        permissoes = COALESCE($2, permissoes)
-      WHERE id_funcionario = $3 AND id_empresa = $4
+        permissoes = COALESCE($2, permissoes),
+        senha_hash = COALESCE($3, senha_hash),
+        email = COALESCE($4, email)
+      WHERE id_funcionario = $5 AND id_empresa = $6
       RETURNING id_funcionario, nome_usuario, email, permissoes;
     `;
-    const result = await pool.query(query, [nome_usuario, permissoes, id_funcionario, id_empresa]);
+    // pg driver doesn't support undefined, so convert undefined to null
+    const params = [
+      nome_usuario !== undefined ? nome_usuario : null, 
+      permissoes !== undefined ? permissoes : null, 
+      senha_hash !== undefined ? senha_hash : null, 
+      email !== undefined ? email : null, 
+      id_funcionario, 
+      id_empresa
+    ];
+    const result = await pool.query(query, params);
     return result.rows[0];
   }
 

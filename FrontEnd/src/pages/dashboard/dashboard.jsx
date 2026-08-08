@@ -283,17 +283,25 @@ export default function Dashboard() {
         <aside className={`dashboard-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
           <div className="sidebar-title">Todas as Obras</div>
           <div className="sidebar-items">
-            {projetos.map(proj => (
-              <div 
-                key={proj.id_projeto} 
-                className="sidebar-item cursor-pointer hover-effect"
-                onClick={() => navigate(`/projeto/${proj.id_projeto}`)}
-                style={{ cursor: 'pointer' }}
-              >
-                🏗️ {proj.nome_projeto}
-              </div>
-            ))}
-            {projetos.length === 0 && <div className="sidebar-item" style={{color: '#9ca3af', fontStyle:'italic'}}>Nenhuma obra...</div>}
+            {(hasPermission('obras_visualizar') || hasPermission('obras_criar')) ? (
+              <>
+                {projetos.map(proj => (
+                  <div 
+                    key={proj.id_projeto} 
+                    className={`sidebar-item ${hasPermission('obras_visualizar') ? 'cursor-pointer hover-effect' : ''}`}
+                    onClick={() => {
+                      if (hasPermission('obras_visualizar')) navigate(`/projeto/${proj.id_projeto}`);
+                    }}
+                    style={{ cursor: hasPermission('obras_visualizar') ? 'pointer' : 'default' }}
+                  >
+                    🏗️ {proj.nome_projeto}
+                  </div>
+                ))}
+                {projetos.length === 0 && <div className="sidebar-item" style={{color: '#9ca3af', fontStyle:'italic'}}>Nenhuma obra...</div>}
+              </>
+            ) : (
+              <div className="sidebar-item" style={{color: '#9ca3af', fontStyle:'italic'}}>Acesso restrito</div>
+            )}
           </div>
         </aside>
 
@@ -313,10 +321,10 @@ export default function Dashboard() {
           </div>
 
           {/* LISTA DE PROJETOS */}
-          {!hasPermission('obras_visualizar') ? (
+          {!(hasPermission('obras_visualizar') || hasPermission('obras_criar')) ? (
             <div className="empty-state">
               <h2>Acesso Negado</h2>
-              <p>Você não tem permissão para visualizar as obras.</p>
+              <p>Você não tem permissão para visualizar ou editar as obras.</p>
             </div>
           ) : projetos.length === 0 ? (
             <div className="empty-state">
@@ -328,7 +336,7 @@ export default function Dashboard() {
           ) : (
             <div className="projetos-grid">
               {projetos.map(projeto => (
-                <div key={projeto.id_projeto} className="projeto-card cursor-pointer" onClick={() => navigate(`/projeto/${projeto.id_projeto}`)}>
+                <div key={projeto.id_projeto} className={`projeto-card ${hasPermission('obras_visualizar') ? 'cursor-pointer' : ''}`} onClick={() => { if(hasPermission('obras_visualizar')) navigate(`/projeto/${projeto.id_projeto}`) }}>
                   
                   <div className="projeto-card-header">
                     <div>
@@ -369,15 +377,17 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="projeto-card-footer">
-                    <button 
-                      className="btn-secondary" 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/projeto/${projeto.id_projeto}`);
-                      }}
-                    >
-                      Acessar Obra
-                    </button>
+                    {hasPermission('obras_visualizar') && (
+                      <button 
+                        className="btn-secondary" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/projeto/${projeto.id_projeto}`);
+                        }}
+                      >
+                        Acessar Obra
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
