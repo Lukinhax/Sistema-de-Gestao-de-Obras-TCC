@@ -324,7 +324,7 @@ export default function CronogramaTab({ idProjeto }) {
                 />
                 <YAxis domain={[0, 100]} tickFormatter={(val) => `${val}%`} stroke="var(--text-secondary)" />
                 <Tooltip 
-                  formatter={(val, name) => [`${Number(val || 0).toFixed(2)}%`, name === 'planejado' ? 'Avanço Planejado Acum.' : 'Avanço Realizado Acum.']}
+                  formatter={(val, name) => [`${Number(val || 0).toFixed(2)}%`, name === 'Avanço Planejado' ? 'Avanço Planejado Acum.' : 'Avanço Realizado Acum.']}
                   labelFormatter={formatDateBR}
                   contentStyle={{ backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
                 />
