@@ -282,6 +282,8 @@ body.dark-mode .dashboard-layout .welcome-box p {
   padding: 20px;
   text-align: center;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .stat-card h3 {
@@ -292,8 +294,10 @@ body.dark-mode .dashboard-layout .welcome-box p {
 }
 
 .stat-value {
-  font-size: 1.5rem;
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
   font-weight: 700;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .text-green { color: #10b981; }

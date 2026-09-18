@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { parseLocalDate, formatDateBR, isDateValid } from '../../utils/dateUtils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Gantt, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
@@ -11,10 +12,12 @@ import TableViewIcon from '@mui/icons-material/TableView';
 import html2canvas from 'html2canvas';
 import * as XLSX from 'xlsx';
 import { usePermissions } from '../../hooks/usePermissions';
+import { useTheme } from '../../contexts/ThemeContext';
 import './projetoDetalhes.css'; 
 
 export default function CronogramaTab({ idProjeto }) {
   const { hasPermission } = usePermissions();
+  const { isDarkMode } = useTheme();
   const [etapas, setEtapas] = useState([]);
   const [curvaS, setCurvaS] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,6 +38,7 @@ export default function CronogramaTab({ idProjeto }) {
   const [progressoModal, setProgressoModal] = useState({ isOpen: false, etapa: null });
   const [progressoPerc, setProgressoPerc] = useState('');
   const [dataFimReal, setDataFimReal] = useState('');
+  const [nomeTarefaEdit, setNomeTarefaEdit] = useState('');
 
   const token = localStorage.getItem('token');
 
@@ -107,7 +111,8 @@ export default function CronogramaTab({ idProjeto }) {
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           execucao_real_perc: parseFloat(progressoPerc),
-          data_fim_real: dataFimReal || null
+          data_fim_real: dataFimReal || null,
+          nome_tarefa: nomeTarefaEdit
         })
       });
       if (!res.ok) throw new Error('Falha ao atualizar progresso.');
@@ -116,33 +121,18 @@ export default function CronogramaTab({ idProjeto }) {
     } catch (err) { setError(err.message); } finally { setLoading(false); }
   };
 
-  const formatDateBR = (dateString) => {
-    if (!dateString) return '-';
-    let date = new Date(dateString);
-    if (isNaN(date.getTime()) || date.getFullYear() < 2000 || date.getFullYear() > 2100) {
-      return '-';
-    }
-    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-    return date.toLocaleDateString('pt-BR');
-  };
-
-  const isDateValid = (dateString) => {
-    if (!dateString) return false;
-    let date = new Date(dateString);
-    return !isNaN(date.getTime()) && date.getFullYear() > 2000 && date.getFullYear() < 2100;
-  };
 
   const handleExportExcel = () => {
     const dataToExport = etapas.map(e => ({
       'EDT': e.codigo_edt,
       'Nome da Tarefa': e.nome_tarefa,
+      'Status': e.status_farol,
       'Duração Prevista (Dias)': e.duracao_dias,
       'Peso Financeiro (%)': (Number(e.peso_financeiro) * 100).toFixed(2),
       'Avanço Realizado (%)': Number(e.execucao_real_perc).toFixed(2),
       'Data Início Prevista': formatDateBR(e.data_inicio_planejada),
       'Data Fim Prevista': formatDateBR(e.data_fim_planejada),
-      'Data Fim Real': formatDateBR(e.data_fim_real),
-      'Status': e.status_farol
+      'Data Fim Real': e.data_fim_real ? formatDateBR(e.data_fim_real) : 'Não registrada',
     }));
 
     const ws = XLSX.utils.json_to_sheet(dataToExport);
@@ -202,17 +192,22 @@ export default function CronogramaTab({ idProjeto }) {
 
   const ganttTasks = React.useMemo(() => {
     return validEtapas.map((e) => {
-      let start = new Date(e.data_inicio_planejada);
-      start.setMinutes(start.getMinutes() + start.getTimezoneOffset());
-      
-      let end = new Date(e.data_fim_planejada);
-      end.setMinutes(end.getMinutes() + end.getTimezoneOffset());
+      // Usa parseLocalDate para evitar o bug de timezone (dia -1 no fuso -03:00)
+      let start = parseLocalDate(e.data_inicio_planejada);
+      let end = parseLocalDate(e.data_fim_planejada);
       
       // Prevent start >= end 
       if(start.getTime() >= end.getTime()){
          end = new Date(start.getTime());
          end.setDate(end.getDate() + 1);
       }
+
+      // Cores por status
+      const isAtrasada = e.status_farol === 'ATRASADA';
+      const isConcluida = e.status_farol === 'CONCLUÍDA';
+      const progressColor = isAtrasada ? '#ef4444' : isConcluida ? '#10b981' : '#3b82f6';
+      const progressSelectedColor = isAtrasada ? '#b91c1c' : isConcluida ? '#059669' : '#2563eb';
+      const bgColor = isAtrasada ? '#fca5a5' : '#93c5fd';
 
       return {
         start: start,
@@ -222,11 +217,13 @@ export default function CronogramaTab({ idProjeto }) {
         type: 'task',
         progress: Number(e.execucao_real_perc) || 0,
         isDisabled: !hasPermission('obras_criar'),
+        // Dados extras para o tooltip customizado
+        displayOrder: e.id_etapa,
         styles: { 
-          progressColor: e.status_farol === 'Atrasado' ? '#ef4444' : '#10b981',
-          progressSelectedColor: e.status_farol === 'Atrasado' ? '#b91c1c' : '#059669',
-          backgroundColor: '#3b82f6',
-          backgroundSelectedColor: '#2563eb'
+          progressColor,
+          progressSelectedColor,
+          backgroundColor: bgColor,
+          backgroundSelectedColor: isAtrasada ? '#f87171' : '#60a5fa'
         }
       };
     });
@@ -256,7 +253,42 @@ export default function CronogramaTab({ idProjeto }) {
     }
   }, [viewMode, ganttTasks]);
 
-  // Custom components to translate gantt-task-react internal table
+  // Tooltip customizado do Gantt com Data Fim Real
+  const CustomTooltipContent = React.useMemo(() => {
+    return ({ task, fontSize, fontFamily }) => {
+      const etapa = etapas.find(e => String(e.id_etapa) === task.id);
+      if (!etapa) return null;
+      const isAtrasada = etapa.status_farol === 'ATRASADA';
+      const isConcluida = etapa.status_farol === 'CONCLUÍDA';
+      return (
+        <div style={{
+          background: '#1f2937', color: '#f9fafb', padding: '12px 16px',
+          borderRadius: '8px', fontFamily, fontSize,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.35)',
+          border: `2px solid ${isAtrasada ? '#ef4444' : isConcluida ? '#10b981' : '#3b82f6'}`,
+          minWidth: '220px'
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '0.9rem' }}>
+            {etapa.codigo_edt} — {etapa.nome_tarefa}
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.82rem', color: '#d1d5db' }}>
+            <span>📅 <strong>Início Previsto:</strong> {formatDateBR(etapa.data_inicio_planejada)}</span>
+            <span>📅 <strong>Fim Previsto:</strong> {formatDateBR(etapa.data_fim_planejada)}</span>
+            {etapa.data_fim_real && (
+              <span style={{ color: isConcluida ? '#34d399' : '#f87171' }}>
+                {isConcluida ? '✅' : '⚠️'} <strong>Fim Real:</strong> {formatDateBR(etapa.data_fim_real)}
+              </span>
+            )}
+            <span>📊 <strong>Avanço:</strong> {Number(etapa.execucao_real_perc).toFixed(1)}%</span>
+            <span style={{ marginTop: '4px', fontWeight: 'bold', color: isAtrasada ? '#f87171' : isConcluida ? '#34d399' : '#60a5fa' }}>
+              {isAtrasada ? '🔴 ATRASADA' : isConcluida ? '🟢 CONCLUÍDA' : '🔵 EM PROGRESSO'}
+            </span>
+          </div>
+        </div>
+      );
+    };
+  }, [etapas]);
+
   const CustomTaskListHeader = React.useMemo(() => {
     return ({ headerHeight, fontFamily, fontSize }) => (
       <div style={{ display: 'flex', height: headerHeight, fontFamily, fontSize, background: '#f9fafb', borderBottom: '1px solid #e5e7eb', alignItems: 'center', color: '#6b7280', fontWeight: 'bold' }}>
@@ -277,7 +309,7 @@ export default function CronogramaTab({ idProjeto }) {
               if(etapa) {
                 setProgressoModal({ isOpen: true, etapa });
                 setProgressoPerc(etapa.execucao_real_perc);
-                setDataFimReal(etapa.data_fim_real ? etapa.data_fim_real.split('T')[0] : '');
+                setDataFimReal(etapa.data_fim_real ? String(etapa.data_fim_real).split('T')[0] : '');
               }
           }}>
             <div style={{ flex: 1, paddingLeft: '10px', minWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={t.name}>{t.name}</div>
@@ -374,13 +406,14 @@ export default function CronogramaTab({ idProjeto }) {
             columnWidth={getColumnWidth()}
             TaskListHeader={CustomTaskListHeader}
             TaskListTable={CustomTaskListTable}
+            TooltipContent={CustomTooltipContent}
             onDoubleClick={(task) => {
               if(!hasPermission('obras_criar')) return;
               const etapa = etapas.find(e => String(e.id_etapa) === task.id);
               if(etapa) {
                 setProgressoModal({ isOpen: true, etapa: etapa });
                 setProgressoPerc(etapa.execucao_real_perc);
-                setDataFimReal(etapa.data_fim_real ? etapa.data_fim_real.split('T')[0] : '');
+                setDataFimReal(etapa.data_fim_real ? String(etapa.data_fim_real).split('T')[0] : '');
               }
             }}
           />
@@ -405,18 +438,23 @@ export default function CronogramaTab({ idProjeto }) {
                 <th>Status</th>
                 <th>Peso (%)</th>
                 <th>Realizado (%)</th>
-                <th>Data Início Prevista</th>
-                <th>Data Fim Prevista</th>
+                <th>Início Previsto</th>
+                <th>Fim Previsto</th>
+                <th style={{ color: '#ef4444' }}>Fim Real</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {etapas.map(e => (
-                <tr key={e.id_etapa}>
+              {etapas.map(e => {
+                const isAtrasada = e.status_farol === 'ATRASADA';
+                const isConcluida = e.status_farol === 'CONCLUÍDA';
+                const rowBg = isAtrasada ? 'rgba(239,68,68,0.07)' : isConcluida ? 'rgba(16,185,129,0.07)' : 'transparent';
+                return (
+                <tr key={e.id_etapa} style={{ background: rowBg }}>
                   <td className="fw-bold">{e.codigo_edt}</td>
                   <td>{e.nome_tarefa}</td>
                   <td>
-                    <span className={`status-badge ${e.status_farol.toLowerCase().replace(/\s+/g, '-')}`}>
+                    <span className={`status-badge ${e.status_farol.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`}>
                       {e.status_farol}
                     </span>
                   </td>
@@ -424,19 +462,23 @@ export default function CronogramaTab({ idProjeto }) {
                   <td className="highlight-text">{Number(e.execucao_real_perc).toFixed(2)}%</td>
                   <td>{formatDateBR(e.data_inicio_planejada)}</td>
                   <td>{formatDateBR(e.data_fim_planejada)}</td>
+                  <td style={{ fontWeight: e.data_fim_real ? '600' : 'normal', color: e.data_fim_real ? (isConcluida ? '#059669' : '#dc2626') : '#9ca3af' }}>
+                    {e.data_fim_real ? formatDateBR(e.data_fim_real) : '—'}
+                  </td>
                   <td>
                     {hasPermission('obras_criar') && (
                       <IconButton size="small" color="primary" onClick={() => {
                         setProgressoModal({ isOpen: true, etapa: e });
                         setProgressoPerc(e.execucao_real_perc);
-                        setDataFimReal(e.data_fim_real ? e.data_fim_real.split('T')[0] : '');
+                        setDataFimReal(e.data_fim_real ? String(e.data_fim_real).split('T')[0] : '');
+                        setNomeTarefaEdit(e.nome_tarefa);
                       }}>
                         <EditIcon fontSize="small" />
                       </IconButton>
                     )}
                   </td>
                 </tr>
-              ))}
+              )})}
             </tbody>
           </table>
         )}
@@ -498,8 +540,15 @@ export default function CronogramaTab({ idProjeto }) {
             <form onSubmit={handleAtualizarProgresso} className="modal-form">
               <div className="form-group">
                 <label>Tarefa Selecionada</label>
-                <div style={{ padding: '10px', background: '#f3f4f6', border: '1px solid #d1d5db', borderRadius: '6px', fontWeight: 'bold' }}>
-                  {progressoModal.etapa.codigo_edt} - {progressoModal.etapa.nome_tarefa}
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ padding: '10px', background: isDarkMode ? '#374151' : '#f3f4f6', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, color: isDarkMode ? '#f9fafb' : '#111827', borderRadius: '6px', fontWeight: 'bold' }}>
+                    {progressoModal.etapa.codigo_edt}
+                  </div>
+                  <input type="text" value={nomeTarefaEdit} onChange={e => setNomeTarefaEdit(e.target.value)} required style={{ flex: 1, padding: '10px', borderRadius: '6px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, background: isDarkMode ? '#374151' : '#fff', color: isDarkMode ? '#f9fafb' : '#111827' }} />
+                </div>
+                {/* Datas planejadas para referência */}
+                <div style={{ marginTop: '8px', fontSize: '0.82rem', color: '#6b7280', display: 'flex', gap: '12px' }}>
+                  <span>📅 Previsto: {formatDateBR(progressoModal.etapa.data_inicio_planejada)} → {formatDateBR(progressoModal.etapa.data_fim_planejada)}</span>
                 </div>
               </div>
               <div className="form-group">
@@ -507,7 +556,7 @@ export default function CronogramaTab({ idProjeto }) {
                 <input type="number" step="0.01" min="0" max="100" value={progressoPerc} onChange={e=>setProgressoPerc(e.target.value)} required placeholder="Ex: 50.00" />
               </div>
               <div className="form-group">
-                <label>Data de Fim Real (Se concluída)</label>
+                <label>Data de Fim Real <span style={{ color: '#6b7280', fontWeight: 'normal', fontSize: '0.85rem' }}>(preencha quando a etapa for concluída)</span></label>
                 <input type="date" value={dataFimReal} onChange={e=>setDataFimReal(e.target.value)} />
               </div>
               <div className="modal-footer">

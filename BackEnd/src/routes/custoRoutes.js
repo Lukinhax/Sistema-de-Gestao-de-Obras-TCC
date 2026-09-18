@@ -7,6 +7,7 @@ router.use(authMiddleware);
 
 router.post('/', custoController.createCusto);
 router.get('/', custoController.getCustosByProjeto);
+router.put('/:id_custo', custoController.updateCusto);
 router.delete('/:id_custo', custoController.deleteCusto);
 
 module.exports = router;

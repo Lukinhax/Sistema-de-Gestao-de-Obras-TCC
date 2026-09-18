@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { formatDateBR } from '../../utils/dateUtils';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -197,12 +198,8 @@ export default function Dashboard() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
   };
 
-  // Formatar Data
-  const formatDate = (dateString) => {
-    if (!dateString) return '--/--/----';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR');
-  };
+  // Formatar Data — usa o utilitário centralizado (sem bug de timezone)
+  const formatDate = formatDateBR;
 
   return (
     <div className="dashboard-layout">

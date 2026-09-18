@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
+import { parseLocalDate, formatDateBR } from '../../utils/dateUtils';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import IconButton from '@mui/material/IconButton';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -49,11 +51,18 @@ export default function ProjetoDetalhes() {
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
 
-  // Formulário Custos
+  // Formulário Custos — Criar
   const [isCustoModalOpen, setIsCustoModalOpen] = useState(false);
   const [descricaoCusto, setDescricaoCusto] = useState('');
   const [valorCusto, setValorCusto] = useState('');
   const [dataCusto, setDataCusto] = useState('');
+
+  // Formulário Custos — Editar
+  const [isEditCustoModalOpen, setIsEditCustoModalOpen] = useState(false);
+  const [custoEditando, setCustoEditando] = useState(null);
+  const [descricaoEdit, setDescricaoEdit] = useState('');
+  const [valorEdit, setValorEdit] = useState('');
+  const [dataEdit, setDataEdit] = useState('');
 
   const token = localStorage.getItem('token');
 
@@ -130,8 +139,8 @@ export default function ProjetoDetalhes() {
   
   // O custo da equipe é (custo diário * número de dias)
   const calcularCustoEquipe = (equipe) => {
-    const inicio = new Date(equipe.data_inicio);
-    const fim = new Date(equipe.data_fim);
+    const inicio = parseLocalDate(equipe.data_inicio);
+    const fim = parseLocalDate(equipe.data_fim);
     const diffTime = Math.abs(fim - inicio);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 para contar o dia de início
     return diffDays * Number(equipe.custo_diario_equipe);
@@ -140,6 +149,11 @@ export default function ProjetoDetalhes() {
   const custoTotalEquipes = equipesAlocadas.reduce((acc, curr) => acc + calcularCustoEquipe(curr), 0);
   const custoTotalExtra = custos.reduce((acc, curr) => acc + Number(curr.valor), 0);
   const custoTotalObra = custoTotalRecursos + custoTotalEquipes + custoTotalExtra;
+
+  // Porcentagem real do orçamento consumido (sem cap, para detectar estouro)
+  const orcamentoTotal = Number(projeto?.orcamento_total) || 0;
+  const percGasto = orcamentoTotal > 0 ? (custoTotalObra / orcamentoTotal) * 100 : 0;
+  const orcamentoEstourado = percGasto > 100;
 
   // Handlers
   const handleAlocarRecurso = async (e) => {
@@ -213,6 +227,39 @@ export default function ProjetoDetalhes() {
     fetchCustos();
   };
 
+  // Abre o modal de edição preenchido com os dados do registro selecionado
+  const handleAbrirEdicaoCusto = (custo) => {
+    setCustoEditando(custo);
+    setDescricaoEdit(custo.descricao || '');
+    // Garante que o valor é string numérica para o CurrencyInput (ex: '1500.50')
+    setValorEdit(custo.valor !== undefined ? String(custo.valor) : '');
+    // data_registro chega como 'YYYY-MM-DD' (parser do pg configurado)
+    setDataEdit(custo.data_registro ? String(custo.data_registro).split('T')[0] : '');
+    setIsEditCustoModalOpen(true);
+    setError('');
+  };
+
+  const handleEditarCusto = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch(`http://localhost:3000/api/projetos/${id}/custos/${custoEditando.id_custo}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          descricao: descricaoEdit,
+          valor: parseFloat(valorEdit),
+          data_registro: dataEdit || undefined
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Erro ao atualizar custo.');
+      setIsEditCustoModalOpen(false);
+      setCustoEditando(null);
+      fetchCustos();
+    } catch (err) { setError(err.message); }
+  };
+
   if (loading || !projeto) {
     return <div className="loading-screen">Carregando detalhes da obra...</div>;
   }
@@ -247,7 +294,7 @@ export default function ProjetoDetalhes() {
         <div className="header-right">
           <div className="orcamento-box">
             <span className="orcamento-label">Orçamento Restante</span>
-            <span className={`orcamento-value ${projeto.orcamento_total - custoTotalObra < 0 ? 'red' : 'green'}`}>
+            <span className={`orcamento-value ${orcamentoEstourado || (orcamentoTotal > 0 && projeto.orcamento_total - custoTotalObra < 0) ? 'red' : 'green'}`}>
               {formatCurrency(projeto.orcamento_total - custoTotalObra)}
             </span>
           </div>
@@ -282,17 +329,75 @@ export default function ProjetoDetalhes() {
         {/* TAB VISÃO GERAL */}
         {activeTab === 'visao-geral' && (
           <div className="visao-geral-grid">
-            <div className="resumo-card">
+
+            {/* CARD: PROGRESSO FINANCEIRO */}
+            <div
+              className="resumo-card"
+              style={orcamentoEstourado ? {
+                border: '2px solid #ef4444',
+                boxShadow: '0 0 0 3px rgba(239,68,68,0.15)'
+              } : {}}
+            >
+              {/* Badge de alerta quando estourado */}
+              {orcamentoEstourado && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: '#fee2e2',
+                  border: '1px solid #fca5a5',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  marginBottom: '12px',
+                  color: '#b91c1c',
+                  fontWeight: '700',
+                  fontSize: '0.82rem',
+                  animation: 'pulse-alert 1.5s ease-in-out infinite'
+                }}>
+                  ⚠️ Orçamento estourado! ({percGasto.toFixed(1)}% do planejado)
+                </div>
+              )}
+
               <h3>Progresso Financeiro</h3>
+
+              {/* Barra de progresso */}
               <div className="progress-bar-container">
-                <div className="progress-bar" style={{width: `${Math.min((custoTotalObra / projeto.orcamento_total) * 100, 100)}%`}}></div>
+                <div
+                  className="progress-bar"
+                  style={{
+                    width: `${Math.min(percGasto, 100)}%`,
+                    background: orcamentoEstourado
+                      ? 'linear-gradient(90deg, #ef4444, #dc2626)'
+                      : percGasto >= 80
+                        ? 'linear-gradient(90deg, #f59e0b, #d97706)'
+                        : 'linear-gradient(90deg, #2e6bee, #10b981)',
+                    transition: 'width 0.5s ease, background 0.4s ease'
+                  }}
+                />
               </div>
-              <div className="progress-labels">
-                <span>Gasto: {formatCurrency(custoTotalObra)}</span>
-                <span>Total: {formatCurrency(projeto.orcamento_total)}</span>
+
+              {/* Labels de gasto / orçamento */}
+              <div className="progress-labels" style={{ marginTop: '8px' }}>
+                <span style={{
+                  fontWeight: orcamentoEstourado ? '700' : '600',
+                  color: orcamentoEstourado ? '#dc2626' : 'inherit'
+                }}>
+                  Gasto: {formatCurrency(custoTotalObra)}
+                  {orcamentoEstourado && (
+                    <span style={{ marginLeft: '6px', fontSize: '0.78rem', color: '#dc2626' }}>
+                      (+{formatCurrency(custoTotalObra - orcamentoTotal)} acima)
+                    </span>
+                  )}
+                </span>
+                <span>Planejado: {formatCurrency(orcamentoTotal)}</span>
+              </div>
+
+              {/* Mini barra de percentual */}
+              <div style={{ marginTop: '10px', fontSize: '0.8rem', color: orcamentoEstourado ? '#dc2626' : '#6b7280', textAlign: 'right', fontWeight: '600' }}>
+                {percGasto.toFixed(1)}% consumido
               </div>
             </div>
-            
+
             <div className="resumo-card">
               <h3>Custo com Materiais</h3>
               <div className="big-value text-blue">{formatCurrency(custoTotalRecursos)}</div>
@@ -374,7 +479,7 @@ export default function ProjetoDetalhes() {
             ) : (
               <div className="equipes-list">
                 {equipesAlocadas.map(eq => {
-                  const dias = Math.ceil(Math.abs(new Date(eq.data_fim) - new Date(eq.data_inicio)) / (1000 * 60 * 60 * 24)) + 1;
+                  const dias = Math.ceil(Math.abs(parseLocalDate(eq.data_fim) - parseLocalDate(eq.data_inicio)) / (1000 * 60 * 60 * 24)) + 1;
                   return (
                     <div className="equipe-alocada-card" key={eq.id_mao_obra}>
                       <div className="eq-header">
@@ -386,7 +491,7 @@ export default function ProjetoDetalhes() {
                         )}
                       </div>
                       <div className="eq-body">
-                        <p><strong>Período:</strong> {new Date(eq.data_inicio).toLocaleDateString()} até {new Date(eq.data_fim).toLocaleDateString()} ({dias} dias)</p>
+                        <p><strong>Período:</strong> {formatDateBR(eq.data_inicio)} até {formatDateBR(eq.data_fim)} ({dias} dias)</p>
                         <p><strong>Custo Diário:</strong> {formatCurrency(eq.custo_diario_equipe)}</p>
                         <p className="eq-cost"><strong>Custo Total Projetado:</strong> {formatCurrency(calcularCustoEquipe(eq))}</p>
                       </div>
@@ -425,14 +530,29 @@ export default function ProjetoDetalhes() {
                 <tbody>
                   {custos.map(c => (
                     <tr key={c.id_custo}>
-                      <td>{new Date(c.data_registro).toLocaleDateString()}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{formatDateBR(c.data_registro)}</td>
                       <td className="fw-bold">{c.descricao}</td>
                       <td className="highlight-text text-red">{formatCurrency(c.valor)}</td>
-                      <td>
+                      <td style={{ display: 'flex', gap: '2px', alignItems: 'center' }}>
                         {hasPermission('financeiro_custos') && (
-                          <IconButton size="small" color="error" onClick={() => handleRemoverCusto(c.id_custo)}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
+                          <>
+                            <IconButton
+                              size="small"
+                              color="primary"
+                              title="Editar lançamento"
+                              onClick={() => handleAbrirEdicaoCusto(c)}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              color="error"
+                              title="Excluir lançamento"
+                              onClick={() => handleRemoverCusto(c.id_custo)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </>
                         )}
                       </td>
                     </tr>
@@ -514,7 +634,7 @@ export default function ProjetoDetalhes() {
         </div>
       )}
 
-      {/* MODAL CUSTO */}
+      {/* MODAL CUSTO — CRIAR */}
       {isCustoModalOpen && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -529,7 +649,7 @@ export default function ProjetoDetalhes() {
               </div>
               <div className="form-row">
                 <div className="form-group half">
-                  <label>Valor</label>
+                  <label>Valor *</label>
                   <CurrencyInput
                     id="valorCusto"
                     name="valorCusto"
@@ -551,6 +671,59 @@ export default function ProjetoDetalhes() {
               <div className="modal-footer">
                 <button type="button" className="btn-cancel" onClick={() => setIsCustoModalOpen(false)}>Cancelar</button>
                 <button type="submit" className="btn-primary">Registrar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL CUSTO — EDITAR */}
+      {isEditCustoModalOpen && custoEditando && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h2>Editar Lançamento Financeiro</h2>
+              <IconButton onClick={() => { setIsEditCustoModalOpen(false); setError(''); }}><CloseIcon /></IconButton>
+            </div>
+            <form onSubmit={handleEditarCusto} className="modal-form">
+              <div className="form-group">
+                <label>Descrição *</label>
+                <input
+                  type="text"
+                  value={descricaoEdit}
+                  onChange={e => setDescricaoEdit(e.target.value)}
+                  required
+                  placeholder="Ex: Aluguel de Caçamba"
+                />
+              </div>
+              <div className="form-row">
+                <div className="form-group half">
+                  <label>Valor *</label>
+                  <CurrencyInput
+                    id="valorEdit"
+                    name="valorEdit"
+                    placeholder="R$ 0,00"
+                    decimalsLimit={2}
+                    decimalSeparator=","
+                    groupSeparator="."
+                    prefix="R$ "
+                    value={valorEdit === '' ? undefined : valorEdit}
+                    onValueChange={(value) => setValorEdit(value || '')}
+                  />
+                </div>
+                <div className="form-group half">
+                  <label>Data</label>
+                  <input
+                    type="date"
+                    value={dataEdit}
+                    onChange={e => setDataEdit(e.target.value)}
+                  />
+                </div>
+              </div>
+              {error && <p className="error-message">{error}</p>}
+              <div className="modal-footer">
+                <button type="button" className="btn-cancel" onClick={() => { setIsEditCustoModalOpen(false); setError(''); }}>Cancelar</button>
+                <button type="submit" className="btn-primary">Salvar Alterações</button>
               </div>
             </form>
           </div>

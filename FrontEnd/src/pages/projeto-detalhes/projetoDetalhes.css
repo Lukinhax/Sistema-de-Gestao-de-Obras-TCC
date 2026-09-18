@@ -1,5 +1,16 @@
 @import '../dashboard/dashboard.css';
 
+/* =========================================
+   ANIMAÇÕES
+   ========================================= */
+@keyframes pulse-alert {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.85; transform: scale(1.01); }
+}
+
+/* Cor utilitária vermelha para custos extras */
+.text-red { color: #dc2626 !important; }
+
 .detalhes-layout {
   min-height: 100vh;
   background-color: #f3f4f6;
@@ -9,17 +20,23 @@
 /* HEADER */
 .detalhes-header {
   background: white;
-  padding: 20px 40px;
+  padding: 16px 40px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;            /* evita sobreposição quando ambos os lados crescem */
   border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;       /* em telas muito estreitas os lados ficam empilhados */
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 15px;
+  /* CRÍTICO: permite que o flex-item encolha abaixo do conteúdo natural */
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 
 .back-btn {
@@ -33,9 +50,15 @@
 
 .obra-title {
   margin: 0 0 5px 0;
-  font-size: 1.5rem;
+  /* Tamanho fluido: nunca abaixo de 1.1rem, nunca acima de 1.5rem */
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
   color: #111827;
   font-weight: 700;
+  /* Truncamento seguro: impede que um nome muito longo quebre o header */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .orcamento-box {
@@ -46,6 +69,10 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  /* Não deixa o box crescer além do espaço disponível */
+  flex-shrink: 0;
+  max-width: 260px;
+  overflow: hidden;
 }
 
 .orcamento-label {
@@ -56,12 +83,18 @@
 }
 
 .orcamento-value {
-  font-size: 1.3rem;
+  /* Tamanho fluido: encolhe em telas pequenas, cresce até 1.3rem */
+  font-size: clamp(0.95rem, 2vw, 1.3rem);
   font-weight: 700;
+  /* Impede que o valor quebre o container */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .orcamento-value.green { color: #059669; }
-.orcamento-value.red { color: #dc2626; }
+.orcamento-value.red   { color: #dc2626; }
 
 /* SUB NAV */
 .detalhes-nav {
@@ -103,11 +136,26 @@
   margin: 0 auto;
 }
 
-/* VISÃO GERAL */
+/* VISÃO GERAL — GRID RESPONSIVO */
 .visao-geral-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 20px;
+  /* CRÍTICO: impede que as células extravasem o container pai */
+  min-width: 0;
+}
+
+/* Celular: coluna única */
+@media (max-width: 600px) {
+  .visao-geral-grid {
+    grid-template-columns: 1fr;
+  }
+  .detalhes-content {
+    padding: 20px 16px;
+  }
+  .detalhes-header {
+    padding: 12px 16px;
+  }
 }
 
 .resumo-card {
@@ -116,19 +164,36 @@
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  /*
+   * CRÍTICO: sem overflow:hidden + min-width:0 o conteúdo do card
+   * transborda e quebra todo o grid quando há valores muito grandes.
+   */
+  overflow: hidden;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .resumo-card h3 {
   margin: 0 0 15px 0;
   font-size: 1rem;
   color: #4b5563;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+/*
+ * big-value — valores monetários grandes (ex: R$ 999.999.999,99)
+ * clamp() adapta o tamanho ao viewport; overflow-wrap garante
+ * a quebra de linha no pior caso sem destruir o layout.
+ */
 .big-value {
-  font-size: 2rem;
+  font-size: clamp(1.1rem, 3.5vw, 2rem);
   font-weight: 700;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
-.text-blue { color: #2e6bee; }
+.text-blue   { color: #2e6bee; }
 .text-orange { color: #ea580c; }
 
 .progress-bar-container {
@@ -148,10 +213,22 @@
 .progress-labels {
   display: flex;
   justify-content: space-between;
+  /* flex-wrap evita que labels sobreponham em telas estreitas */
+  flex-wrap: wrap;
+  gap: 4px 12px;
   font-size: 0.85rem;
   color: #6b7280;
   font-weight: 600;
+  min-width: 0;
 }
+
+.progress-labels span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 
 /* SECTIONS */
 .section-header {
@@ -298,55 +375,8 @@
   margin: 0 auto;
 }
 
-/* VISÃO GERAL */
-.visao-geral-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 20px;
-}
 
-.resumo-card {
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
 
-.resumo-card h3 {
-  margin: 0 0 15px 0;
-  font-size: 1rem;
-  color: #4b5563;
-}
-
-.big-value {
-  font-size: 2rem;
-  font-weight: 700;
-}
-.text-blue { color: #2e6bee; }
-.text-orange { color: #ea580c; }
-
-.progress-bar-container {
-  height: 10px;
-  background: #e5e7eb;
-  border-radius: 5px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-
-.progress-bar {
-  height: 100%;
-  background: #2e6bee;
-  border-radius: 5px;
-}
-
-.progress-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: #6b7280;
-  font-weight: 600;
-}
 
 /* SECTIONS */
 .section-header {
@@ -476,4 +506,80 @@
 #gantt-chart-container svg {
   overflow: visible !important;
 }
- 
+
+/* =========================================
+   STATUS BADGES do Cronograma (EDT)
+   Mapeamento dos valores retornados pelo backend:
+   - NÃO INICIADA → slug: no-iniciada
+   - EM PROGRESSO  → slug: em-progresso
+   - ATRASADA      → slug: atrasada
+   - CONCLUÍDA     → slug: concluda (sem acento após replace)
+   ========================================= */
+
+/* Fallback genérico */
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* NÃO INICIADA */
+.status-badge.no-iniciada,
+.status-badge.nao-iniciada,
+.status-badge.n-iniciada {
+  background: #f3f4f6;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+/* EM PROGRESSO */
+.status-badge.em-progresso {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+
+/* ATRASADA */
+.status-badge.atrasada {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+/* CONCLUÍDA (após replace /[^a-z0-9-]/g → 'concluda') */
+.status-badge.concluda,
+.status-badge.conclu-da {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+/* Status do dashboard (minúsculos com espaço → slug) */
+.status-badge.em-planejamento {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+.status-badge.em-andamento {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+.status-badge.conclu-do,
+.status-badge.concludo {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+.status-badge.pausado {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+

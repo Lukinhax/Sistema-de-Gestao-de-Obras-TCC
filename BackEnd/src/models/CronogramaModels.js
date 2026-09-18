@@ -50,35 +50,67 @@ class EtapaModel {
 
     static async findByProjeto(id_projeto) {
         const { rows } = await pool.query(`SELECT * FROM projeto_etapa WHERE id_projeto = $1 ORDER BY codigo_edt ASC`, [id_projeto]);
-        return rows.map(row => new EtapaModel(row));
+        // Calcula o status_farol dinamicamente ao retornar os dados
+        return rows.map(row => {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            let statusFarol = row.status_farol || 'NÃO INICIADA';
+
+            // Se não foi concluída (< 100%) e a data fim planejada já passou: ATRASADA
+            if (row.data_fim_planejada && Number(row.execucao_real_perc) < 100) {
+                // data_fim_planejada vem como string 'YYYY-MM-DD' (parser configurado)
+                const [y, m, d] = String(row.data_fim_planejada).split('-').map(Number);
+                const fimPlan = new Date(y, m - 1, d);
+                if (fimPlan < hoje) {
+                    statusFarol = 'ATRASADA';
+                }
+            }
+            return new EtapaModel({ ...row, status_farol: statusFarol });
+        });
     }
 
-    async updateExecucao(percRealizado, dataFimReal = null) {
+    async updateExecucao(percRealizado, dataFimReal = null, nomeTarefa = null) {
         let query = `UPDATE projeto_etapa SET execucao_real_perc = $1`;
         let values = [percRealizado];
         let index = 2;
+
+        if (nomeTarefa) {
+            query += `, nome_tarefa = $${index}`;
+            values.push(nomeTarefa);
+            index++;
+        }
 
         if (dataFimReal) {
             query += `, data_fim_real = $${index}`;
             values.push(dataFimReal);
             index++;
         }
-        
+
+        // Calcula o novo status_farol automaticamente
+        let novoStatus;
         if (percRealizado >= 100) {
-            query += `, status_farol = $${index}`;
-            values.push('CONCLUÍDA');
-            index++;
+            novoStatus = 'CONCLUÍDA';
         } else if (percRealizado > 0) {
-            query += `, status_farol = $${index}`;
-            values.push('EM PROGRESSO');
-            index++;
+            // Verifica se passou da data planejada para definir ATRASADA vs EM PROGRESSO
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const [y, m, d] = String(this.data_fim_planejada).split('-').map(Number);
+            const fimPlan = new Date(y, m - 1, d);
+            novoStatus = fimPlan < hoje ? 'ATRASADA' : 'EM PROGRESSO';
+        } else {
+            novoStatus = 'NÃO INICIADA';
         }
+        query += `, status_farol = $${index}`;
+        values.push(novoStatus);
+        index++;
 
         query += ` WHERE id_etapa = $${index} RETURNING *;`;
         values.push(this.id_etapa);
 
         const { rows } = await pool.query(query, values);
         Object.assign(this, rows[0]);
+        // Garante que o status retornado já é o calculado
+        this.status_farol = novoStatus;
         return this;
     }
 }

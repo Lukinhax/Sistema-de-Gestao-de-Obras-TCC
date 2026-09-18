@@ -1,6 +1,13 @@
 const { EtapaModel } = require('../models/CronogramaModels');
 const pool = require('../config/database');
 
+// Helper: constrói um Date local (sem UTC offset) a partir de string 'YYYY-MM-DD'
+function parseLocalDate(str) {
+    if (!str) return null;
+    const [y, m, d] = String(str).split('-').map(Number);
+    return new Date(y, m - 1, d);
+}
+
 exports.getEtapas = async (req, res) => {
     try {
         const { id_projeto } = req.params;
@@ -37,14 +44,14 @@ exports.criarEtapa = async (req, res) => {
 exports.atualizarProgresso = async (req, res) => {
     try {
         const { id_etapa } = req.params;
-        const { execucao_real_perc, data_fim_real } = req.body;
+        const { execucao_real_perc, data_fim_real, nome_tarefa } = req.body;
         
         // Find stage to instantiate model
         const { rows } = await pool.query(`SELECT * FROM projeto_etapa WHERE id_etapa = $1`, [id_etapa]);
         if (rows.length === 0) return res.status(404).json({ message: 'Etapa não encontrada.' });
         
         const etapa = new EtapaModel(rows[0]);
-        const etapaAtualizada = await etapa.updateExecucao(execucao_real_perc, data_fim_real);
+        const etapaAtualizada = await etapa.updateExecucao(execucao_real_perc, data_fim_real, nome_tarefa);
         
         res.status(200).json(etapaAtualizada);
     } catch (error) {
@@ -57,47 +64,38 @@ exports.getCurvaS = async (req, res) => {
     try {
         const { id_projeto } = req.params;
         const etapas = await EtapaModel.findByProjeto(id_projeto);
-        
-        // Algoritmo simples de Curva S: 
-        // Agrupar por data de término planejada para a curva de planejamento
-        // Agrupar por data atual/fim real para a curva realizada.
-        // Como é um MVP, vamos gerar pontos diários ou por evento
-        let timeline = [];
-        
-        // Coleta todas as datas únicas de planejamento
-        const datasPlanejadas = [...new Set(etapas.map(e => e.data_fim_planejada ? new Date(e.data_fim_planejada).toISOString().split('T')[0] : null).filter(d=>d))];
-        datasPlanejadas.sort();
 
-        let planejadoAcumulado = 0;
-        let realizadoAcumulado = 0;
+        // Coleta todas as datas únicas de fim planejado (já chegam como string 'YYYY-MM-DD')
+        const datasPlanejadas = [...new Set(
+            etapas
+                .map(e => e.data_fim_planejada ? String(e.data_fim_planejada).split('T')[0] : null)
+                .filter(d => d)
+        )].sort();
+
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
 
         // Calcula o acumulado por data marco
         const pontosCurva = datasPlanejadas.map(dataMarco => {
-            const dataMarcoDate = new Date(dataMarco);
-            
-            // Soma peso das etapas que deveriam estar prontas até essa data
+            const dataMarcoDate = parseLocalDate(dataMarco);
+
             let somaPlanejada = 0;
-            // Soma peso executado real de TODAS as etapas até o momento dessa consulta
-            // No mundo real, a curva S real seria plotada no eixo do tempo também
             let somaRealizada = 0;
 
             etapas.forEach(e => {
-                const fimPlan = new Date(e.data_fim_planejada);
-                if (fimPlan <= dataMarcoDate) {
+                const fimPlan = parseLocalDate(e.data_fim_planejada);
+                if (fimPlan && fimPlan <= dataMarcoDate) {
                     somaPlanejada += Number(e.peso_financeiro) || 0;
                 }
-                
-                // Aproximação do realizado: pega o % concluído * peso total, mas distribuído na linha do tempo
-                // Se a etapa terminou antes do marco, considera 100% (ou a execucao real * peso)
+
+                // Curva realizada: se tem data fim real, usa-a; senão, usa data atual como referência
                 if (e.data_fim_real) {
-                    const fimReal = new Date(e.data_fim_real);
-                    if (fimReal <= dataMarcoDate) {
+                    const fimReal = parseLocalDate(e.data_fim_real);
+                    if (fimReal && fimReal <= dataMarcoDate) {
                         somaRealizada += (Number(e.execucao_real_perc) / 100) * Number(e.peso_financeiro);
                     }
                 } else {
-                    // Se não tem data fim real, assume que o % atual vale pro dia de hoje.
-                    // Para o gráfico histórico, isso é uma aproximação.
-                    const hoje = new Date();
+                    // Aproximação: o % atual vale para o dia de hoje
                     if (hoje <= dataMarcoDate) {
                         somaRealizada += (Number(e.execucao_real_perc) / 100) * Number(e.peso_financeiro);
                     }

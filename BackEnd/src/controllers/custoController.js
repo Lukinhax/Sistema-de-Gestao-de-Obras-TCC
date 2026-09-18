@@ -80,3 +80,32 @@ exports.deleteCusto = async (req, res) => {
     res.status(500).json({ message: 'Erro interno no servidor ao deletar custo.' });
   }
 };
+
+exports.updateCusto = async (req, res) => {
+  try {
+    const { id_projeto, id_custo } = req.params;
+    const id_empresa = req.empresaId;
+    const { descricao, valor, data_registro } = req.body;
+
+    // Verifica se o projeto pertence à empresa
+    const projeto = await ProjetoModel.findById(id_projeto, id_empresa);
+    if (!projeto) {
+      return res.status(404).json({ message: 'Projeto não encontrado ou acesso negado.' });
+    }
+
+    if (!descricao && valor === undefined && !data_registro) {
+      return res.status(400).json({ message: 'Nenhum campo para atualizar foi enviado.' });
+    }
+
+    const custoAtualizado = await CustoModel.update(id_custo, { descricao, valor, data_registro });
+
+    if (!custoAtualizado) {
+      return res.status(404).json({ message: 'Registro financeiro não encontrado.' });
+    }
+
+    res.json(custoAtualizado);
+  } catch (err) {
+    console.error('Erro ao atualizar custo:', err);
+    res.status(500).json({ message: 'Erro interno no servidor ao atualizar custo.' });
+  }
+};
