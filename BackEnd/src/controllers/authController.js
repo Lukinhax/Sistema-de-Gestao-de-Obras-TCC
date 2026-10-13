@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const EmpresaModel = require("../models/empresaModel");
+const { validatePassword } = require("../utils/passwordValidator");
 
 // Carregar variáveis de ambiente
 require("dotenv").config();
@@ -14,6 +15,12 @@ class AuthController {
       // Validações básicas
       if (!nome_empresa || !email || !cnpj || !senha) {
         return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
+      }
+
+      // Validação da política de senha
+      const erroSenha = validatePassword(senha);
+      if (erroSenha) {
+        return res.status(400).json({ message: erroSenha });
       }
 
       // Verificar se CNPJ ou Email já existem
@@ -78,7 +85,7 @@ class AuthController {
         );
 
         return res.status(200).json({
-          message: "Login realizado com sucesso!",
+          message: "Acesso realizado com sucesso!",
           token,
           empresa: {
             id_empresa: empresa.id_empresa,
@@ -113,7 +120,7 @@ class AuthController {
         );
 
         return res.status(200).json({
-          message: "Login realizado com sucesso!",
+          message: "Acesso realizado com sucesso!",
           token,
           empresa: empresaVinculada, // Frontend usa isso para saber a empresa atual
           funcionario: {

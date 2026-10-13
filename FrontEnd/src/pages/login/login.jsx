@@ -29,7 +29,7 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Erro ao realizar login.');
+        throw new Error(data.message || 'Erro ao entrar.');
       }
 
       // Salvar token e redirecionar
@@ -57,8 +57,8 @@ export default function Login() {
         <img src={logo} alt="Gestão de Obras Logo" className="auth-logo-img" />
       </Link>
       <div className='login-box'>
-        <h1>Login</h1>
-        <p>Acesse o sistema com suas credenciais de empresa ou faça login como funcionário.</p>
+        <h1>Entrar</h1>
+        <p>Acesse o sistema com suas credenciais de empresa ou entre como funcionário.</p>
         
         <form onSubmit={handleLogin} className='login-form'>
           <div className='input-group'>

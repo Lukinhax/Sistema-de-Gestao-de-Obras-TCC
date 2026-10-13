@@ -13,6 +13,8 @@ import Relatorios from './Relatorios';
 import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import { usePermissions } from '../../hooks/usePermissions';
+import { validatePassword } from '../../utils/passwordValidator';
+import PasswordRequirements from '../../components/PasswordRequirements';
 import './configuracoes.css';
 
 export default function Configuracoes() {
@@ -133,6 +135,16 @@ export default function Configuracoes() {
       setError('Selecione ao menos uma permissão.');
       setLoading(false);
       return;
+    }
+
+    // Senha obrigatória na criação; na edição só valida se for preenchida
+    if (!editMode || senha) {
+      const erroSenha = validatePassword(senha);
+      if (erroSenha) {
+        setError(erroSenha);
+        setLoading(false);
+        return;
+      }
     }
 
     const emailCompleto = `${prefixoLogin}${dominioEmpresa}`;
@@ -364,7 +376,7 @@ export default function Configuracoes() {
                     <thead>
                       <tr>
                         <th>Nome</th>
-                        <th>Login</th>
+                        <th>Usuário</th>
                         <th>Permissões</th>
                         <th>Ações</th>
                       </tr>
@@ -443,7 +455,7 @@ export default function Configuracoes() {
                     </div>
 
                     <div className="input-group" style={{ marginTop: '15px' }}>
-                      <label htmlFor="prefixoLogin">Login do Funcionário</label>
+                      <label htmlFor="prefixoLogin">Usuário de Acesso</label>
                       <div className="login-input-wrapper" style={{ display: 'flex' }}>
                         <input 
                           type="text" 
@@ -478,6 +490,7 @@ export default function Configuracoes() {
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </div>
+                      {(!editMode || senha) && <PasswordRequirements senha={senha} />}
                     </div>
 
                     <div className="input-group" style={{ marginTop: '20px' }}>

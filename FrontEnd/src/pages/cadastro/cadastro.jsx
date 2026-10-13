@@ -5,6 +5,8 @@ import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import IconButton from '@mui/material/IconButton';
 import { IMaskInput } from 'react-imask';
+import { validatePassword } from '../../utils/passwordValidator';
+import PasswordRequirements from '../../components/PasswordRequirements';
 import './cadastro.css';
 
 export default function Cadastro() {
@@ -48,8 +50,9 @@ export default function Cadastro() {
       return setError('O CNPJ está incompleto. Verifique se digitou corretamente.');
     }
 
-    if (formData.senha.length < 6) {
-      return setError('A senha deve ter no mínimo 6 caracteres.');
+    const erroSenha = validatePassword(formData.senha);
+    if (erroSenha) {
+      return setError(erroSenha);
     }
 
     try {
@@ -150,6 +153,7 @@ export default function Cadastro() {
                 {showPassword ? <VisibilityOff /> : <Visibility />}
               </IconButton>
             </div>
+            <PasswordRequirements senha={formData.senha} />
           </div>
 
           {error && <p className="error-message">{error}</p>}
@@ -158,7 +162,7 @@ export default function Cadastro() {
         </form>
 
         <p className="login-link">
-          Já possui conta? <a href="/login">Faça login</a>
+          Já possui conta? <a href="/login">Entrar</a>
         </p>
       </div>
     </div>

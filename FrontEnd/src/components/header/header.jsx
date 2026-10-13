@@ -18,7 +18,7 @@ export default function Header() {
           <Button className='btnText' variant="text" href="/#sobre">Sobre</Button>
 
           <Button className='btnOutlined' variant="outlined" component={Link} to="/login">
-            Login
+            Entrar
           </Button>
 
           <Button className='btnContained' variant="contained" component={Link} to="/cadastro">

@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const FuncionarioModel = require("../models/funcionarioModel");
+const { validatePassword } = require("../utils/passwordValidator");
 
 class FuncionarioController {
   // Cria um novo funcionário
@@ -12,10 +13,16 @@ class FuncionarioController {
         return res.status(400).json({ message: "Preencha todos os campos obrigatórios." });
       }
 
+      // Validação da política de senha
+      const erroSenha = validatePassword(senha);
+      if (erroSenha) {
+        return res.status(400).json({ message: erroSenha });
+      }
+
       // Verifica se já existe um funcionário (ou empresa) com esse email
       const emailExists = await FuncionarioModel.findByEmail(email);
       if (emailExists) {
-        return res.status(400).json({ message: "Login já está em uso." });
+        return res.status(400).json({ message: "Usuário já está em uso." });
       }
 
       // Hash da senha
@@ -62,6 +69,11 @@ class FuncionarioController {
       const updateData = req.body;
 
       if (updateData.senha) {
+        const erroSenha = validatePassword(updateData.senha);
+        if (erroSenha) {
+          return res.status(400).json({ message: erroSenha });
+        }
+
         const salt = await bcrypt.genSalt(10);
         updateData.senha_hash = await bcrypt.hash(updateData.senha, salt);
       }
